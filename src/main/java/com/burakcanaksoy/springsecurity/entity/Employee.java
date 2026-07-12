@@ -1,0 +1,33 @@
+package com.burakcanaksoy.springsecurity.entity;
+
+
+import jakarta.persistence.*;
+import lombok.*;
+
+import java.time.LocalDate;
+
+@Entity
+@Table(name = "employee")
+@AllArgsConstructor
+@NoArgsConstructor
+@Builder
+@Getter
+@Setter
+public class Employee {
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+    private String username;
+    private String passwordHash;
+    private String firstName;
+    private String lastName;
+    private String tcNo;
+    private LocalDate birthDate;
+    private String gender;
+    private String phoneNumber;
+    private String email;
+    private String address;
+    @Enumerated(EnumType.STRING)
+    private Role role;
+
+}

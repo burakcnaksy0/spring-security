@@ -34,4 +34,14 @@ public class PasswordResetTokenService {
             throw new RuntimeException("Password reset token has expired. Please send again");
         }
     }
+
+    public void deleteToken(PasswordResetToken passwordResetToken) {
+        passwordResetTokenRepository.delete(passwordResetToken);
+    }
+
+    public PasswordResetToken getByToken(String token){
+        PasswordResetToken passwordResetToken = passwordResetTokenRepository.findByToken(token).orElseThrow(() ->
+                new ResourceNotFoundException("Invalid token"));
+        return passwordResetToken;
+    }
 }

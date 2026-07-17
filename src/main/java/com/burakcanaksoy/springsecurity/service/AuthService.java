@@ -13,18 +13,12 @@ import com.burakcanaksoy.springsecurity.exception.EmailNotVerifiedException;
 import com.burakcanaksoy.springsecurity.exception.ResourceNotFoundException;
 import com.burakcanaksoy.springsecurity.mapper.EmployeeMapper;
 import com.burakcanaksoy.springsecurity.repository.EmployeeRepository;
-import com.burakcanaksoy.springsecurity.repository.PasswordResetTokenRepository;
-import com.burakcanaksoy.springsecurity.repository.VerificationTokenRepository;
 import com.burakcanaksoy.springsecurity.security.CustomUserPrincipal;
 import com.burakcanaksoy.springsecurity.util.JwtUtil;
-import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.BadCredentialsException;
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -37,9 +31,7 @@ public class AuthService {
     private final JwtUtil jwtUtil;
     private final RefreshTokenService refreshTokenService;
     private final VerificationTokenService verificationTokenService;
-    private final VerificationTokenRepository verificationTokenRepository;
     private final PasswordResetTokenService passwordResetTokenService;
-    private final PasswordResetTokenRepository passwordResetTokenRepository;
     private final EmailService emailService;
     //private final AuthenticationManager authenticationManager;
 
@@ -62,7 +54,7 @@ public class AuthService {
         Employee employee = verificationToken.getEmployee();
         employee.setEnabled(true);
         repository.save(employee);
-        verificationTokenRepository.delete(verificationToken);
+        verificationTokenService.deleteToken(verificationToken);
         return "Email successfully verified";
     }
 
@@ -140,13 +132,12 @@ public class AuthService {
     }
 
     public String resetPassword(String token, ResetPasswordRequest resetPasswordRequest) {
-        PasswordResetToken passwordResetToken = passwordResetTokenRepository.findByToken(token).orElseThrow(() ->
-                new ResourceNotFoundException("Invalid token"));
+        PasswordResetToken passwordResetToken = passwordResetTokenService.getByToken(token);
         passwordResetTokenService.verifyPasswordResetToken(passwordResetToken.getToken());
         Employee employee = passwordResetToken.getEmployee();
         employee.setPasswordHash(passwordEncoder.encode(resetPasswordRequest.getNewPassword()));
-        passwordResetTokenRepository.delete(passwordResetToken);
         repository.save(employee);
+        passwordResetTokenService.deleteToken(passwordResetToken);
         return "Your password has been reset. Your new password is : " + resetPasswordRequest.getNewPassword();
     }
 

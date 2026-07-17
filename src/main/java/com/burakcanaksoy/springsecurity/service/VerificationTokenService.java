@@ -37,4 +37,8 @@ public class VerificationTokenService {
         }
         return verificationToken;
     }
+
+    public void deleteToken(VerificationToken verificationToken){
+        verificationTokenRepository.delete(verificationToken);
+    }
 }

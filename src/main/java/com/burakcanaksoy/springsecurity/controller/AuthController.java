@@ -2,13 +2,17 @@ package com.burakcanaksoy.springsecurity.controller;
 
 import com.burakcanaksoy.springsecurity.dto.request.EmployeeLoginRequest;
 import com.burakcanaksoy.springsecurity.dto.request.EmployeeRegisterRequest;
+import com.burakcanaksoy.springsecurity.dto.request.RefreshTokenRequest;
 import com.burakcanaksoy.springsecurity.dto.response.AuthResponse;
 import com.burakcanaksoy.springsecurity.dto.response.LoginResponse;
+import com.burakcanaksoy.springsecurity.dto.response.RefreshTokenResponse;
 import com.burakcanaksoy.springsecurity.service.AuthService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -23,12 +27,22 @@ public class AuthController {
 
 
     @PostMapping("/register")
-    public ResponseEntity<AuthResponse> register(@Valid @RequestBody EmployeeRegisterRequest registerRequest){
+    public ResponseEntity<AuthResponse> register(@Valid @RequestBody EmployeeRegisterRequest registerRequest) {
         return ResponseEntity.status(HttpStatus.CREATED).body(authService.register(registerRequest));
     }
 
     @PostMapping("/login")
-    public ResponseEntity<LoginResponse> login(@Valid @RequestBody EmployeeLoginRequest loginRequest){
+    public ResponseEntity<LoginResponse> login(@Valid @RequestBody EmployeeLoginRequest loginRequest) {
         return ResponseEntity.ok().body(authService.login(loginRequest));
+    }
+
+    @PostMapping("/refresh")
+    public ResponseEntity<RefreshTokenResponse> refresh(@Valid @RequestBody RefreshTokenRequest request) {
+        return ResponseEntity.status(HttpStatus.CREATED).body(authService.refreshToken(request));
+    }
+
+    @PostMapping("/logout")
+    public ResponseEntity<String> logout() {
+        return ResponseEntity.ok().body(authService.logout());
     }
 }

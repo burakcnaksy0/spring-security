@@ -6,9 +6,7 @@ import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
-import org.springframework.context.annotation.Bean;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
@@ -38,8 +36,11 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         jwt = authHeader.substring(7);
         try {
             username = jwtUtil.extractUsername(jwt);
-
+            // burdan sonrası performans&güvenlik ilişkisini belirler.
             if (username != null && SecurityContextHolder.getContext().getAuthentication() == null) {
+                // burada bi kere daha db ye istek atılır. db içindeki güncel bilgiler alınır.
+                // bu yapılmak istenmezse ; yukardaki jwt içinden id , username , mail vs gibi bilgileri alıp UserDetails nesnesini kendimiz oluşturup
+                // UsernamePasswordAuthenticationToken'nın parametre alanına ekleriz. böylece performans artarken güvenlik açığı veririz.(db den güncel bilgiler çekilmedi.)
                 UserDetails userDetails = this.userDetailsService.loadUserByUsername(username);
                 if (jwtUtil.validateToken(jwt, userDetails.getUsername())) {
                     UsernamePasswordAuthenticationToken authenticationToken = new UsernamePasswordAuthenticationToken(

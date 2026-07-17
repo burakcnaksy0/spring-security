@@ -25,6 +25,7 @@ public class JwtUtil {
         return Keys.hmacShaKeyFor(bytes);
     }
 
+    // burda ekstra bilgiler eklemek perfomansı artırır ama güvenliği azaltabilir!
     public String generateToken(Employee employee) {
         Map<String, Object> claims = new HashMap<>();
         claims.put("email", employee.getEmail());

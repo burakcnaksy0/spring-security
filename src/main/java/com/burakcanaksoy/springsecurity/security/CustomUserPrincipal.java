@@ -1,6 +1,7 @@
 package com.burakcanaksoy.springsecurity.security;
 
 import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
 import org.jspecify.annotations.Nullable;
 import org.springframework.security.core.GrantedAuthority;
@@ -10,6 +11,9 @@ import java.util.Collection;
 
 @Data
 @AllArgsConstructor
+@Builder
+// spring securitye tanıtmak
+// Spring Security'nin kullanıcıyı temsil ettiği standart modeldir.
 public class CustomUserPrincipal implements UserDetails {
     private Long id;
     private String username;

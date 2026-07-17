@@ -2,9 +2,12 @@ package com.burakcanaksoy.springsecurity.service;
 
 import com.burakcanaksoy.springsecurity.dto.request.EmployeeLoginRequest;
 import com.burakcanaksoy.springsecurity.dto.request.EmployeeRegisterRequest;
+import com.burakcanaksoy.springsecurity.dto.request.RefreshTokenRequest;
 import com.burakcanaksoy.springsecurity.dto.response.AuthResponse;
 import com.burakcanaksoy.springsecurity.dto.response.LoginResponse;
+import com.burakcanaksoy.springsecurity.dto.response.RefreshTokenResponse;
 import com.burakcanaksoy.springsecurity.entity.Employee;
+import com.burakcanaksoy.springsecurity.entity.RefreshToken;
 import com.burakcanaksoy.springsecurity.exception.AlreadyExistsException;
 import com.burakcanaksoy.springsecurity.exception.ResourceNotFoundException;
 import com.burakcanaksoy.springsecurity.mapper.EmployeeMapper;
@@ -17,6 +20,7 @@ import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -28,7 +32,8 @@ public class AuthService {
     private final EmployeeMapper mapper;
     private final PasswordEncoder passwordEncoder;
     private final JwtUtil jwtUtil;
-    private final AuthenticationManager authenticationManager;
+    private final RefreshTokenService refreshTokenService;
+    //private final AuthenticationManager authenticationManager;
 
     public AuthResponse register(EmployeeRegisterRequest registerRequest) {
         checkIfUsernameExists(registerRequest.getUsername());
@@ -45,9 +50,12 @@ public class AuthService {
         Employee employee = repository.findByUsername(loginRequest.getUsername()).orElseThrow(() -> new ResourceNotFoundException("Employee not found with this username : " + loginRequest.getUsername()));
         matchPassword(loginRequest.getPassword(), employee.getPasswordHash());
 
-        String token = jwtUtil.generateToken(employee);
+        String accessToken = jwtUtil.generateToken(employee);
+        RefreshToken refreshToken = refreshTokenService.createRefreshToken(employee.getUsername());
+
         return LoginResponse.builder()
-                .token(token)
+                .accessToken(accessToken)
+                .refreshToken(refreshToken.getToken())
                 .username(employee.getUsername())
                 .message("Login successfully")
                 .build();
@@ -72,6 +80,29 @@ public class AuthService {
 
     }
      */
+
+    public RefreshTokenResponse refreshToken(RefreshTokenRequest refreshTokenRequest) {
+        String refreshToken = refreshTokenRequest.getRefreshToken();
+        return refreshTokenService.findByToken(refreshToken)
+                .map(refreshTokenService::verifyRefreshToken)
+                .map(RefreshToken::getEmployee)
+                .map(employee -> {
+                    String accessToken = jwtUtil.generateToken(employee);
+                    RefreshToken newRefreshToken = refreshTokenService.createRefreshToken(employee.getUsername());
+                    return RefreshTokenResponse.builder()
+                            .accessToken(accessToken)
+                            .refreshToken(newRefreshToken.toString())
+                            .message("Refresh successful")
+                            .build();
+                }).orElseThrow(() -> new RuntimeException("Invalid refresh token"));
+    }
+
+    public String logout() {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        CustomUserPrincipal principal = (CustomUserPrincipal) authentication.getPrincipal();
+        refreshTokenService.deleteEmployeeId(principal.getId());
+        return "Logout successfully with username : " + principal.getUsername();
+    }
 
     private void checkIfEmailExists(String email) {
         if (repository.existsByEmail(email)) {

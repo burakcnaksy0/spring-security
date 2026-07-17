@@ -23,6 +23,7 @@ public class EmployeeResponse {
     private String phoneNumber;
     private String email;
     private String address;
+    private boolean enabled;
     private String role;
 
 }

@@ -27,6 +27,7 @@ public class Employee {
     private String phoneNumber;
     private String email;
     private String address;
+    private boolean enabled;
     @Enumerated(EnumType.STRING)
     private Role role;
 

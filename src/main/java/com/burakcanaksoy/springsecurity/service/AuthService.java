@@ -8,10 +8,13 @@ import com.burakcanaksoy.springsecurity.dto.response.LoginResponse;
 import com.burakcanaksoy.springsecurity.dto.response.RefreshTokenResponse;
 import com.burakcanaksoy.springsecurity.entity.Employee;
 import com.burakcanaksoy.springsecurity.entity.RefreshToken;
+import com.burakcanaksoy.springsecurity.entity.VerificationToken;
 import com.burakcanaksoy.springsecurity.exception.AlreadyExistsException;
+import com.burakcanaksoy.springsecurity.exception.EmailNotVerifiedException;
 import com.burakcanaksoy.springsecurity.exception.ResourceNotFoundException;
 import com.burakcanaksoy.springsecurity.mapper.EmployeeMapper;
 import com.burakcanaksoy.springsecurity.repository.EmployeeRepository;
+import com.burakcanaksoy.springsecurity.repository.VerificationTokenRepository;
 import com.burakcanaksoy.springsecurity.security.CustomUserPrincipal;
 import com.burakcanaksoy.springsecurity.util.JwtUtil;
 import jakarta.validation.Valid;
@@ -33,6 +36,9 @@ public class AuthService {
     private final PasswordEncoder passwordEncoder;
     private final JwtUtil jwtUtil;
     private final RefreshTokenService refreshTokenService;
+    private final VerificationTokenService verificationTokenService;
+    private final VerificationTokenRepository verificationTokenRepository;
+    private final EmailService emailService;
     //private final AuthenticationManager authenticationManager;
 
     public AuthResponse register(EmployeeRegisterRequest registerRequest) {
@@ -42,12 +48,29 @@ public class AuthService {
         checkIfTcExists(registerRequest.getTcNo());
         Employee employee = mapper.toEmployee(registerRequest);
         Employee saved = repository.save(employee);
+
+        VerificationToken verificationToken = verificationTokenService.createVerificationToken(saved);
+        emailService.sendVerificationEmail(saved, verificationToken);
         return mapper.toAuthResponse(saved);
     }
 
+    // maile gelen linke tıklayınca arkada bu işlemler gerçekleşiyor;
+    public String verifyEmail(String token) {
+        VerificationToken verificationToken = verificationTokenService.verifyToken(token);
+        Employee employee = verificationToken.getEmployee();
+        employee.setEnabled(true);
+        repository.save(employee);
+        verificationTokenRepository.delete(verificationToken);
+        return "Email successfully verified";
+    }
 
     public LoginResponse login(EmployeeLoginRequest loginRequest) {
         Employee employee = repository.findByUsername(loginRequest.getUsername()).orElseThrow(() -> new ResourceNotFoundException("Employee not found with this username : " + loginRequest.getUsername()));
+
+        if (!employee.isEnabled()){
+            throw new EmailNotVerifiedException("Email not verified. Please check your email.");
+        }
+
         matchPassword(loginRequest.getPassword(), employee.getPasswordHash());
 
         String accessToken = jwtUtil.generateToken(employee);
@@ -133,5 +156,6 @@ public class AuthService {
             throw new BadCredentialsException("Invalid username or password");
         }
     }
+
 
 }

@@ -32,12 +32,13 @@ public class EmployeeMapper {
                 .phoneNumber(request.getPhoneNumber())
                 .email(request.getEmail())
                 .role(Role.USER)
+                .enabled(false)
                 .build();
     }
 
 
-    public Employee toUpdateEmployeeRequest(Employee employee , EmployeeCreateRequest request){
-        if (employee == null || request == null){
+    public Employee toUpdateEmployeeRequest(Employee employee, EmployeeCreateRequest request) {
+        if (employee == null || request == null) {
             return null;
         }
         employee.setUsername(request.getUsername());
@@ -49,6 +50,7 @@ public class EmployeeMapper {
         employee.setPhoneNumber(request.getPhoneNumber());
         employee.setEmail(request.getEmail());
         employee.setAddress(request.getAddress());
+        employee.setEnabled(true);
         return employee;
     }
 
@@ -62,6 +64,7 @@ public class EmployeeMapper {
                 .email(employee.getEmail())
                 .phone(employee.getPhoneNumber())
                 .tc(employee.getTcNo())
+                .enabled(employee.isEnabled())
                 .build();
     }
 
@@ -80,6 +83,7 @@ public class EmployeeMapper {
                 .phoneNumber(employee.getPhoneNumber())
                 .email(employee.getEmail())
                 .address(employee.getAddress())
+                .enabled(employee.isEnabled())
                 .role(employee.getRole().name())
                 .build();
     }

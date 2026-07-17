@@ -1,0 +1,12 @@
+💡 GELİŞTİRME FİKİRLERİ:
+Bu seriyi tamamladıktan sonra ekleyebileceğiniz özellikler:
+Email verification (Kullanıcı doğrulama)
+Password reset (Şifre sıfırlama)
+Two-factor authentication (2FA)
+Rate limiting (İstek limiti)
+Redis ile token blacklist
+Remember me özelliği
+Social login (Google, Facebook)
+API rate limiting
+Refresh token rotation policy
+Token versioning

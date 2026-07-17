@@ -1,12 +1,11 @@
 package com.burakcanaksoy.springsecurity.service;
 
-import com.burakcanaksoy.springsecurity.dto.request.EmployeeLoginRequest;
-import com.burakcanaksoy.springsecurity.dto.request.EmployeeRegisterRequest;
-import com.burakcanaksoy.springsecurity.dto.request.RefreshTokenRequest;
+import com.burakcanaksoy.springsecurity.dto.request.*;
 import com.burakcanaksoy.springsecurity.dto.response.AuthResponse;
 import com.burakcanaksoy.springsecurity.dto.response.LoginResponse;
 import com.burakcanaksoy.springsecurity.dto.response.RefreshTokenResponse;
 import com.burakcanaksoy.springsecurity.entity.Employee;
+import com.burakcanaksoy.springsecurity.entity.PasswordResetToken;
 import com.burakcanaksoy.springsecurity.entity.RefreshToken;
 import com.burakcanaksoy.springsecurity.entity.VerificationToken;
 import com.burakcanaksoy.springsecurity.exception.AlreadyExistsException;
@@ -14,6 +13,7 @@ import com.burakcanaksoy.springsecurity.exception.EmailNotVerifiedException;
 import com.burakcanaksoy.springsecurity.exception.ResourceNotFoundException;
 import com.burakcanaksoy.springsecurity.mapper.EmployeeMapper;
 import com.burakcanaksoy.springsecurity.repository.EmployeeRepository;
+import com.burakcanaksoy.springsecurity.repository.PasswordResetTokenRepository;
 import com.burakcanaksoy.springsecurity.repository.VerificationTokenRepository;
 import com.burakcanaksoy.springsecurity.security.CustomUserPrincipal;
 import com.burakcanaksoy.springsecurity.util.JwtUtil;
@@ -38,6 +38,8 @@ public class AuthService {
     private final RefreshTokenService refreshTokenService;
     private final VerificationTokenService verificationTokenService;
     private final VerificationTokenRepository verificationTokenRepository;
+    private final PasswordResetTokenService passwordResetTokenService;
+    private final PasswordResetTokenRepository passwordResetTokenRepository;
     private final EmailService emailService;
     //private final AuthenticationManager authenticationManager;
 
@@ -67,7 +69,7 @@ public class AuthService {
     public LoginResponse login(EmployeeLoginRequest loginRequest) {
         Employee employee = repository.findByUsername(loginRequest.getUsername()).orElseThrow(() -> new ResourceNotFoundException("Employee not found with this username : " + loginRequest.getUsername()));
 
-        if (!employee.isEnabled()){
+        if (!employee.isEnabled()) {
             throw new EmailNotVerifiedException("Email not verified. Please check your email.");
         }
 
@@ -127,6 +129,27 @@ public class AuthService {
         return "Logout successfully with username : " + principal.getUsername();
     }
 
+    public String forgotPassword(ForgotPasswordRequest forgotPasswordRequest) {
+        Employee employee = repository.findByEmail(forgotPasswordRequest.getEmail()).orElseThrow(() ->
+                new ResourceNotFoundException("If this email address is registered, a password reset email has been sent."));
+
+        PasswordResetToken passwordResetToken = passwordResetTokenService.createPasswordResetToken(employee);
+        emailService.sendPasswordReset(employee, passwordResetToken);
+        return "A password reset request was sent to this email address : " + forgotPasswordRequest.getEmail();
+
+    }
+
+    public String resetPassword(String token, ResetPasswordRequest resetPasswordRequest) {
+        PasswordResetToken passwordResetToken = passwordResetTokenRepository.findByToken(token).orElseThrow(() ->
+                new ResourceNotFoundException("Invalid token"));
+        passwordResetTokenService.verifyPasswordResetToken(passwordResetToken.getToken());
+        Employee employee = passwordResetToken.getEmployee();
+        employee.setPasswordHash(passwordEncoder.encode(resetPasswordRequest.getNewPassword()));
+        passwordResetTokenRepository.delete(passwordResetToken);
+        repository.save(employee);
+        return "Your password has been reset. Your new password is : " + resetPasswordRequest.getNewPassword();
+    }
+
     private void checkIfEmailExists(String email) {
         if (repository.existsByEmail(email)) {
             throw new AlreadyExistsException("Email already exists.");
@@ -156,6 +179,5 @@ public class AuthService {
             throw new BadCredentialsException("Invalid username or password");
         }
     }
-
 
 }

@@ -1,8 +1,6 @@
 package com.burakcanaksoy.springsecurity.controller;
 
-import com.burakcanaksoy.springsecurity.dto.request.EmployeeLoginRequest;
-import com.burakcanaksoy.springsecurity.dto.request.EmployeeRegisterRequest;
-import com.burakcanaksoy.springsecurity.dto.request.RefreshTokenRequest;
+import com.burakcanaksoy.springsecurity.dto.request.*;
 import com.burakcanaksoy.springsecurity.dto.response.AuthResponse;
 import com.burakcanaksoy.springsecurity.dto.response.LoginResponse;
 import com.burakcanaksoy.springsecurity.dto.response.RefreshTokenResponse;
@@ -47,4 +45,15 @@ public class AuthController {
     public ResponseEntity<String> verifyEmail(@RequestParam String token){
         return ResponseEntity.ok(authService.verifyEmail(token));
     }
+
+    @PostMapping("/forgot-password")
+    public ResponseEntity<String> forgotPassword(@Valid @RequestBody ForgotPasswordRequest forgotPasswordRequest){
+        return ResponseEntity.ok(authService.forgotPassword(forgotPasswordRequest));
+    }
+
+    @PostMapping("/reset-password")
+    public ResponseEntity<String> resetPassword(@RequestParam String token , @Valid @RequestBody ResetPasswordRequest resetPasswordRequest){
+        return ResponseEntity.ok().body(authService.resetPassword(token,resetPasswordRequest));
+    }
+
 }

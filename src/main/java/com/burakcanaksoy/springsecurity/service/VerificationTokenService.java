@@ -23,8 +23,7 @@ public class VerificationTokenService {
                 .employee(employee)
                 .expiryDate(Instant.now().plusMillis(jwtConfig.getVerificationExpiration()))
                 .build();
-        VerificationToken saved = verificationTokenRepository.save(verificationToken);
-        return saved;
+        return verificationTokenRepository.save(verificationToken);
     }
 
     public VerificationToken verifyToken(String token) {

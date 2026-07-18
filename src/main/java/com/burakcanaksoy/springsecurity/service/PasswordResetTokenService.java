@@ -40,8 +40,7 @@ public class PasswordResetTokenService {
     }
 
     public PasswordResetToken getByToken(String token){
-        PasswordResetToken passwordResetToken = passwordResetTokenRepository.findByToken(token).orElseThrow(() ->
+        return passwordResetTokenRepository.findByToken(token).orElseThrow(() ->
                 new ResourceNotFoundException("Invalid token"));
-        return passwordResetToken;
     }
 }

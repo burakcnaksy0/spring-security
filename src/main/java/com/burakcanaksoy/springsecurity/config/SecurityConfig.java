@@ -1,5 +1,6 @@
 package com.burakcanaksoy.springsecurity.config;
 
+import com.burakcanaksoy.springsecurity.exception.OAuth2LoginSuccessHandler;
 import com.burakcanaksoy.springsecurity.filter.JwtAuthenticationFilter;
 import com.burakcanaksoy.springsecurity.security.JwtAccessDeniedHandler;
 import com.burakcanaksoy.springsecurity.security.JwtAuthenticationEntryPoint;
@@ -26,6 +27,7 @@ public class SecurityConfig {
     private final JwtAuthenticationFilter jwtAuthenticationFilter;
     private final JwtAuthenticationEntryPoint jwtAuthenticationEntryPoint;
     private final JwtAccessDeniedHandler jwtAccessDeniedHandler;
+    private final OAuth2LoginSuccessHandler oAuth2LoginSuccessHandler;
 
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
@@ -35,6 +37,12 @@ public class SecurityConfig {
                         .requestMatchers("/api/v1/auth/totp/verify-login").hasRole("PRE_AUTH")
                         .requestMatchers("/api/v1/auth/**").permitAll()
                         .anyRequest().authenticated()
+                )
+                .oauth2Login(oauth2 -> oauth2
+                        .successHandler(oAuth2LoginSuccessHandler)
+                        .failureHandler((request, response, exception) -> {
+                            response.sendRedirect("http://localhost:3000/oauth-callback?error=" + exception.getMessage());
+                        })
                 )
                 .exceptionHandling(exception -> exception
                         .authenticationEntryPoint(jwtAuthenticationEntryPoint)

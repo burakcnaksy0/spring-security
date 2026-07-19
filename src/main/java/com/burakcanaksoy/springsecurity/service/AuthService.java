@@ -62,6 +62,10 @@ public class AuthService {
             throw new EmailNotVerifiedException("Email not verified. Please check your email.");
         }
 
+        if (employee.getPasswordHash() == null) {
+            throw new BadCredentialsException("This account was created with Google Sign-In. Please use 'Sign in with Google'.");
+        }
+
         matchPassword(loginRequest.getPassword(), employee.getPasswordHash());
 
         if (employee.isMfaEnabled()) {
@@ -147,36 +151,6 @@ public class AuthService {
         return "Your password has been reset. Your new password is : " + resetPasswordRequest.getNewPassword();
     }
 
-    private void checkIfEmailExists(String email) {
-        if (repository.existsByEmail(email)) {
-            throw new AlreadyExistsException("Email already exists.");
-        }
-    }
-
-    private void checkIfUsernameExists(String username) {
-        if (repository.existsByUsername(username)) {
-            throw new AlreadyExistsException("Username already exists.");
-        }
-    }
-
-    private void checkIfPhoneExists(String phone) {
-        if (repository.existsByPhoneNumber(phone)) {
-            throw new AlreadyExistsException("Phone number already exists.");
-        }
-    }
-
-    private void checkIfTcExists(String tcno) {
-        if (repository.existsByTcNo(tcno)) {
-            throw new AlreadyExistsException("TC number already exists.");
-        }
-    }
-
-    private void matchPassword(String loginPassword, String dbPasswordHashed) {
-        if (!passwordEncoder.matches(loginPassword, dbPasswordHashed)) {
-            throw new BadCredentialsException("Invalid username or password");
-        }
-    }
-
     public OtpResponse sendOtp(EmailOtpRequest request) {
         Employee employee = repository.findByUsername(request.getUsername()).orElseThrow(() ->
                 new ResourceNotFoundException("Employee not found with this username : " + request.getUsername()));
@@ -251,6 +225,56 @@ public class AuthService {
                 .username(username)
                 .message("Login successfully")
                 .build();
+    }
+
+    public String setPasswordForOAuthUser(String username, String newPassword) {
+        Employee employee = repository.findByUsername(username)
+                .orElseThrow(() -> new ResourceNotFoundException("Employee not found"));
+
+        if (employee.getPasswordHash() != null) {
+            throw new AlreadyExistsException("Password already set. Use change-password instead.");
+        }
+
+        employee.setPasswordHash(passwordEncoder.encode(newPassword));
+        repository.save(employee);
+        return "Password set successfully. You can now login with username and password too.";
+    }
+
+    public String delete(Long id) {
+        Employee employee = repository.findById(id).orElseThrow(() ->
+                new ResourceNotFoundException("Employee not found with this id : " + id));
+        repository.delete(employee);
+        return employee.getEmail() + "is deleted";
+    }
+
+    private void checkIfEmailExists(String email) {
+        if (repository.existsByEmail(email)) {
+            throw new AlreadyExistsException("Email already exists.");
+        }
+    }
+
+    private void checkIfUsernameExists(String username) {
+        if (repository.existsByUsername(username)) {
+            throw new AlreadyExistsException("Username already exists.");
+        }
+    }
+
+    private void checkIfPhoneExists(String phone) {
+        if (repository.existsByPhoneNumber(phone)) {
+            throw new AlreadyExistsException("Phone number already exists.");
+        }
+    }
+
+    private void checkIfTcExists(String tcno) {
+        if (repository.existsByTcNo(tcno)) {
+            throw new AlreadyExistsException("TC number already exists.");
+        }
+    }
+
+    private void matchPassword(String loginPassword, String dbPasswordHashed) {
+        if (!passwordEncoder.matches(loginPassword, dbPasswordHashed)) {
+            throw new BadCredentialsException("Invalid username or password");
+        }
     }
 }
 

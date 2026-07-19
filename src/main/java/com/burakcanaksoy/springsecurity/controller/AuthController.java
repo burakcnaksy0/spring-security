@@ -17,6 +17,11 @@ public class AuthController {
 
     private final AuthService authService;
 
+    @DeleteMapping("/delete/{id}")
+    public ResponseEntity<String> delete(@PathVariable Long id){
+
+        return ResponseEntity.ok(authService.delete(id));
+    }
 
     @PostMapping("/register")
     public ResponseEntity<AuthResponse> register(@Valid @RequestBody EmployeeRegisterRequest registerRequest) {
@@ -76,5 +81,10 @@ public class AuthController {
     @PostMapping("/totp/verify-login")
     public ResponseEntity<LoginResponse> verifyTotpLogin(Authentication authentication , @RequestParam String code) {
         return ResponseEntity.ok(authService.verifyTotpLogin(authentication.getName(), code));
+    }
+
+    @PostMapping("/set-password")
+    public ResponseEntity<String> setPassword(Authentication authentication, @RequestParam String newPassword) {
+        return ResponseEntity.ok(authService.setPasswordForOAuthUser(authentication.getName(), newPassword));
     }
 }

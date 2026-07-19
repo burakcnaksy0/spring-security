@@ -17,13 +17,22 @@ public class Employee {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
+    @Column(nullable = false)
     private String username;
     private String passwordHash;
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    @Builder.Default
+    private AuthProvider provider = AuthProvider.LOCAL;
+    @Column(unique = true)
+    private String providerId;
     private String firstName;
     private String lastName;
+    @Column(nullable = false)
     private String tcNo;
     private LocalDate birthDate;
     private String gender;
+    @Column(nullable = false)
     private String phoneNumber;
     private String email;
     private String address;

@@ -9,6 +9,7 @@ import io.jsonwebtoken.security.Keys;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
+import java.util.*;
 import java.security.Key;
 import java.util.Date;
 import java.util.HashMap;
@@ -25,12 +26,28 @@ public class JwtUtil {
         return Keys.hmacShaKeyFor(bytes);
     }
 
+    public boolean isMfaPending(String token) {
+        Claims claims = extractAllClaims(token);
+        return Boolean.TRUE.equals(claims.get("mfaPending", Boolean.class));
+    }
+
+    public String generatePreAuthToken(Employee employee) {
+        return Jwts.builder()
+                .setSubject(employee.getUsername())
+                .claim("mfaPending", true)
+                .claim("authorities", List.of("ROLE_PRE_AUTH"))
+                .setIssuedAt(new Date())
+                .setExpiration(new Date(System.currentTimeMillis() + 1000 * 60 * 3))
+                .signWith(getSigningKey())
+                .compact();
+    }
+
     // burda ekstra bilgiler eklemek perfomansı artırır ama güvenliği azaltabilir!
     public String generateToken(Employee employee) {
         Map<String, Object> claims = new HashMap<>();
         claims.put("email", employee.getEmail());
         claims.put("role", employee.getRole().toString());
-        claims.put("employeeId",employee.getId());
+        claims.put("employeeId", employee.getId());
         return createToken(claims, employee.getUsername());
     }
 
@@ -57,9 +74,10 @@ public class JwtUtil {
         return resolver.apply(claims);
     }
 
-    public Long extractId(String token){
+    public Long extractId(String token) {
         return extractClaim(token, claim -> claim.get("employeeId", Long.class));
     }
+
     public String extractUsername(String token) {
         //return extractAllClaims(token).getSubject();
         return extractClaim(token, Claims::getSubject);

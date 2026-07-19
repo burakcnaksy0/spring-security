@@ -1,10 +1,7 @@
 package com.burakcanaksoy.springsecurity.service;
 
 import com.burakcanaksoy.springsecurity.dto.request.*;
-import com.burakcanaksoy.springsecurity.dto.response.AuthResponse;
-import com.burakcanaksoy.springsecurity.dto.response.LoginResponse;
-import com.burakcanaksoy.springsecurity.dto.response.OtpResponse;
-import com.burakcanaksoy.springsecurity.dto.response.RefreshTokenResponse;
+import com.burakcanaksoy.springsecurity.dto.response.*;
 import com.burakcanaksoy.springsecurity.entity.*;
 import com.burakcanaksoy.springsecurity.exception.AlreadyExistsException;
 import com.burakcanaksoy.springsecurity.exception.EmailNotVerifiedException;
@@ -32,6 +29,7 @@ public class AuthService {
     private final PasswordResetTokenService passwordResetTokenService;
     private final EmailService emailService;
     private final OtpTokenService otpTokenService;
+    private final TotpService totpService;
     //private final AuthenticationManager authenticationManager;
 
     public AuthResponse register(EmployeeRegisterRequest registerRequest) {
@@ -65,6 +63,15 @@ public class AuthService {
         }
 
         matchPassword(loginRequest.getPassword(), employee.getPasswordHash());
+
+        if (employee.isMfaEnabled()) {
+            String preAuthToken = jwtUtil.generatePreAuthToken(employee);
+            return LoginResponse.builder()
+                    .accessToken(preAuthToken)
+                    .message("MFA_REQUIRED")
+                    .build();
+        }
+
 
         String accessToken = jwtUtil.generateToken(employee);
         RefreshToken refreshToken = refreshTokenService.createRefreshToken(employee.getUsername());
@@ -197,6 +204,52 @@ public class AuthService {
                 .refreshToken(refreshToken.getToken())
                 .username(request.getUsername())
                 .message("Login success")
+                .build();
+    }
+
+    public TotpSetupResponse setupTotp(String username) {
+        Employee employee = repository.findByUsername(username)
+                .orElseThrow(() -> new ResourceNotFoundException("Employee not found"));
+
+        String secret = totpService.generateSecret();
+        employee.setTotpSecret(secret);
+        employee.setMfaEnabled(false);
+        repository.save(employee);
+
+        String qrImage = totpService.generateQrCodeImage(secret, employee.getUsername());
+        return TotpSetupResponse.builder()
+                .secret(secret)
+                .qrCodeImage(qrImage)
+                .build();
+    }
+
+    public String enableTotp(String username, String code) {
+        Employee employee = repository.findByUsername(username)
+                .orElseThrow(() -> new ResourceNotFoundException("Employee not found"));
+
+        if (!totpService.verifyCode(employee.getTotpSecret(), code)) {
+            throw new BadCredentialsException("Invalid TOTP code");
+        }
+        employee.setMfaEnabled(true);
+        repository.save(employee);
+        return "TOTP 2FA enabled successfully";
+    }
+
+    public LoginResponse verifyTotpLogin(String username, String code) {
+        Employee employee = repository.findByUsername(username)
+                .orElseThrow(() -> new ResourceNotFoundException("Employee not found"));
+
+        if (!totpService.verifyCode(employee.getTotpSecret(), code)) {
+            throw new BadCredentialsException("Invalid TOTP code");
+        }
+
+        String accessToken = jwtUtil.generateToken(employee);
+        RefreshToken refreshToken = refreshTokenService.createRefreshToken(employee.getUsername());
+        return LoginResponse.builder()
+                .accessToken(accessToken)
+                .refreshToken(refreshToken.getToken())
+                .username(username)
+                .message("Login successfully")
                 .build();
     }
 }

@@ -1,15 +1,13 @@
 package com.burakcanaksoy.springsecurity.controller;
 
 import com.burakcanaksoy.springsecurity.dto.request.*;
-import com.burakcanaksoy.springsecurity.dto.response.AuthResponse;
-import com.burakcanaksoy.springsecurity.dto.response.LoginResponse;
-import com.burakcanaksoy.springsecurity.dto.response.OtpResponse;
-import com.burakcanaksoy.springsecurity.dto.response.RefreshTokenResponse;
+import com.burakcanaksoy.springsecurity.dto.response.*;
 import com.burakcanaksoy.springsecurity.service.AuthService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -65,4 +63,18 @@ public class AuthController {
         return ResponseEntity.ok(authService.verifyOtp(request));
     }
 
+    @PostMapping("/totp/setup")
+    public ResponseEntity<TotpSetupResponse> setupTotp(Authentication authentication) {
+        return ResponseEntity.ok(authService.setupTotp(authentication.getName()));
+    }
+
+    @PostMapping("/totp/enable")
+    public ResponseEntity<String> enableTotp(Authentication authentication, @RequestParam String code) {
+        return ResponseEntity.ok(authService.enableTotp(authentication.getName(), code));
+    }
+
+    @PostMapping("/totp/verify-login")
+    public ResponseEntity<LoginResponse> verifyTotpLogin(Authentication authentication , @RequestParam String code) {
+        return ResponseEntity.ok(authService.verifyTotpLogin(authentication.getName(), code));
+    }
 }

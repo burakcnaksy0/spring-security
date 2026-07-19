@@ -30,5 +30,13 @@ public class Employee {
     private boolean enabled;
     @Enumerated(EnumType.STRING)
     private Role role;
+    /*
+    Google Authenticator veya Microsoft Authenticator gibi uygulamaların her 30 saniyede bir benzersiz,
+    tek kullanımlık doğrulama kodları (OTP) üretmek için kullandığı gizli metin veya karekod (QR) tabanlı anahtardır.
+     */
+    @Column
+    private String totpSecret;
+    @Column(nullable = false)
+    private boolean mfaEnabled = false;
 
 }

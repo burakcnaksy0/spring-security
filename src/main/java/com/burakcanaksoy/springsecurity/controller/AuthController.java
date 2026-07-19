@@ -3,6 +3,7 @@ package com.burakcanaksoy.springsecurity.controller;
 import com.burakcanaksoy.springsecurity.dto.request.*;
 import com.burakcanaksoy.springsecurity.dto.response.AuthResponse;
 import com.burakcanaksoy.springsecurity.dto.response.LoginResponse;
+import com.burakcanaksoy.springsecurity.dto.response.OtpResponse;
 import com.burakcanaksoy.springsecurity.dto.response.RefreshTokenResponse;
 import com.burakcanaksoy.springsecurity.service.AuthService;
 import jakarta.validation.Valid;
@@ -52,6 +53,16 @@ public class AuthController {
     @PostMapping("/reset-password")
     public ResponseEntity<String> resetPassword(@RequestParam String token , @Valid @RequestBody ResetPasswordRequest resetPasswordRequest){
         return ResponseEntity.ok().body(authService.resetPassword(token,resetPasswordRequest));
+    }
+
+    @PostMapping("/send-otp")
+    public ResponseEntity<OtpResponse> sendOtp(@Valid @RequestBody EmailOtpRequest request) {
+        return ResponseEntity.ok(authService.sendOtp(request));
+    }
+
+    @PostMapping("/verify-otp")
+    public ResponseEntity<LoginResponse> verifyOtp(@Valid @RequestBody VerifyOtpRequest request) {
+        return ResponseEntity.ok(authService.verifyOtp(request));
     }
 
 }

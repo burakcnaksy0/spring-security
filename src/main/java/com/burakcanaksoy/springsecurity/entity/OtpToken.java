@@ -6,24 +6,29 @@ import lombok.*;
 import java.time.Instant;
 
 @Entity
-@Table(name = "verification_token")
+@Table(name = "otp_token")
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder
-@Data
-public class VerificationToken {
+@Getter
+@Setter
+// (one-time password) sistemlere güvenli giriş yapmak ve işlemleri onaylamak için kullanılan tek seferlik şifredir.
+public class OtpToken {
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(nullable = false, unique = true)
-    private String token;
-
-    @OneToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "employee_id", nullable = false)
     private Employee employee;
+
+    @Column(nullable = false, length = 6)
+    private String otpCode;
 
     @Column(nullable = false)
     private Instant expiryDate;
 
+    @Column(nullable = false)
+    private boolean used;
 }

@@ -42,4 +42,15 @@ public class EmailService {
         mailMessage.setText(message);
         mailSender.send(mailMessage);
     }
+
+    public void sendOtpEmail(Employee employee, String otpCode) {
+        String subject = "Your OTP Code for Login";
+        String message = "Your OTP code is: " + otpCode + ", expires in 5 minutes";
+
+        SimpleMailMessage mailMessage = new SimpleMailMessage();
+        mailMessage.setTo(employee.getEmail());
+        mailMessage.setSubject(subject);
+        mailMessage.setText(message);
+        mailSender.send(mailMessage);
+    }
 }

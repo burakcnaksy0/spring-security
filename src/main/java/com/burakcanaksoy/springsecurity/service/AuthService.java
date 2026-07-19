@@ -3,11 +3,9 @@ package com.burakcanaksoy.springsecurity.service;
 import com.burakcanaksoy.springsecurity.dto.request.*;
 import com.burakcanaksoy.springsecurity.dto.response.AuthResponse;
 import com.burakcanaksoy.springsecurity.dto.response.LoginResponse;
+import com.burakcanaksoy.springsecurity.dto.response.OtpResponse;
 import com.burakcanaksoy.springsecurity.dto.response.RefreshTokenResponse;
-import com.burakcanaksoy.springsecurity.entity.Employee;
-import com.burakcanaksoy.springsecurity.entity.PasswordResetToken;
-import com.burakcanaksoy.springsecurity.entity.RefreshToken;
-import com.burakcanaksoy.springsecurity.entity.VerificationToken;
+import com.burakcanaksoy.springsecurity.entity.*;
 import com.burakcanaksoy.springsecurity.exception.AlreadyExistsException;
 import com.burakcanaksoy.springsecurity.exception.EmailNotVerifiedException;
 import com.burakcanaksoy.springsecurity.exception.ResourceNotFoundException;
@@ -33,6 +31,7 @@ public class AuthService {
     private final VerificationTokenService verificationTokenService;
     private final PasswordResetTokenService passwordResetTokenService;
     private final EmailService emailService;
+    private final OtpTokenService otpTokenService;
     //private final AuthenticationManager authenticationManager;
 
     public AuthResponse register(EmployeeRegisterRequest registerRequest) {
@@ -171,6 +170,35 @@ public class AuthService {
         }
     }
 
+    public OtpResponse sendOtp(EmailOtpRequest request) {
+        Employee employee = repository.findByUsername(request.getUsername()).orElseThrow(() ->
+                new ResourceNotFoundException("Employee not found with this username : " + request.getUsername()));
+        if (!employee.isEnabled()) {
+            throw new EmailNotVerifiedException("Email not verified.");
+        }
+        matchPassword(request.getPassword(), employee.getPasswordHash());
+        OtpToken otpToken = otpTokenService.createOtpToken(employee);
+        emailService.sendOtpEmail(employee, otpToken.getOtpCode());
+        return OtpResponse.builder()
+                .username(request.getUsername())
+                .message("A code has been sent to the email address : " + employee.getEmail())
+                .build();
+
+    }
+
+    public LoginResponse verifyOtp(VerifyOtpRequest request) {
+        Employee employee = repository.findByUsername(request.getUsername()).orElseThrow(() ->
+                new ResourceNotFoundException("Employee not found with this username : " + request.getUsername()));
+        otpTokenService.verifyOtp(employee, request.getOtpCode());
+        String accessToken = jwtUtil.generateToken(employee);
+        RefreshToken refreshToken = refreshTokenService.createRefreshToken(request.getUsername());
+        return LoginResponse.builder()
+                .accessToken(accessToken)
+                .refreshToken(refreshToken.getToken())
+                .username(request.getUsername())
+                .message("Login success")
+                .build();
+    }
 }
 
 /*

@@ -2,6 +2,7 @@ package com.burakcanaksoy.springsecurity.config;
 
 import com.burakcanaksoy.springsecurity.exception.OAuth2LoginSuccessHandler;
 import com.burakcanaksoy.springsecurity.filter.JwtAuthenticationFilter;
+import com.burakcanaksoy.springsecurity.filter.RateLimitFilter;
 import com.burakcanaksoy.springsecurity.security.JwtAccessDeniedHandler;
 import com.burakcanaksoy.springsecurity.security.JwtAuthenticationEntryPoint;
 import lombok.RequiredArgsConstructor;
@@ -28,6 +29,7 @@ public class SecurityConfig {
     private final JwtAuthenticationEntryPoint jwtAuthenticationEntryPoint;
     private final JwtAccessDeniedHandler jwtAccessDeniedHandler;
     private final OAuth2LoginSuccessHandler oAuth2LoginSuccessHandler;
+    private final RateLimitFilter rateLimitFilter;
 
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
@@ -49,6 +51,7 @@ public class SecurityConfig {
                         .accessDeniedHandler(jwtAccessDeniedHandler))
                 .sessionManagement(session -> session
                         .sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+                .addFilterBefore(rateLimitFilter, UsernamePasswordAuthenticationFilter.class)
                 .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
         return http.build();
     }

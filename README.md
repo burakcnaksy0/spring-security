@@ -1,164 +1,82 @@
-# 🛡️ Employee Management & Spring Security JWT API
+# 🛡️ Employee Management & Spring Security JWT API (2fa-google-authenticator Branch)
 
-Bu proje, **Spring Boot 3.x / 4.x** (Spring Boot 4.1.0-SNAPSHOT parent sürümü) ve **Spring Security 6.x** tabanlı, durumsuz (stateless) **JWT (JSON Web Token)** doğrulama mimarisine sahip gelişmiş bir Çalışan (Employee) Yönetim API'sidir. 
+Bu branch, projemize zamana dayalı tek kullanımlık şifreler (TOTP - Time-Based One-Time Password) kullanarak **Google Authenticator veya Microsoft Authenticator** gibi uygulamalarla entegre **İki Aşamalı Doğrulama (2FA)** özelliğini ekler.
 
-Proje kapsamında rol bazlı yetkilendirme (RBAC - Role-Based Access Control), veri doğrulama (Validation), özel şifre kısıtlamaları ve özelleştirilmiş güvenlik hata yakalayıcıları (Custom Exception Handling) gibi modern yazılım mimarisi bileşenleri uygulanmıştır.
-
----
-
-## 🚀 Teknolojiler ve Bağımlılıklar
-
-Proje aşağıdaki modern kütüphaneler ve teknolojilerle inşa edilmiştir:
-
-*   **Java 17** (LTS)
-*   **Spring Boot 4.1.0 (Parent Starter)**
-*   **Spring Security 6.x** (Stateless, JWT entegrasyonlu)
-*   **JJWT (Java JWT) 0.12.7** (Token oluşturma, imzalama ve doğrulama işlemleri için)
-*   **Spring Data JPA & Hibernate** (Veri erişim katmanı)
-*   **MySQL Connector J** (İlişkisel veritabanı sürücüsü)
-*   **Spring Boot Starter Validation** (Giriş doğrulamaları)
-*   **Lombok** (Kazan plakası/boilerplate kodların azaltılması amacıyla)
+Bu sürümde, kullanıcının hesabı şifresine ek olarak 30 saniyede bir yenilenen 6 haneli doğrulama kodlarıyla en yüksek seviyede korunmaktadır.
 
 ---
 
-## 🔑 Güvenlik Mimarisi
+## 📌 Bu Branch'in Amacı ve Mantığı
 
-Uygulama, oturum bilgilerini sunucuda tutmayan (session-less) tamamen **durumsuz (Stateless)** bir güvenlik modeli izler.
+Geleneksel e-posta OTP doğrulamasından farklı olarak, TOTP internet bağlantısı gerektirmeyen, zamana dayalı algoritmalarla (RFC 6238) çalışan cihaz üstü bir güvenlik katmanıdır. Entegrasyon ve çalışma mantığı şu şekildedir:
 
-### Kimlik Doğrulama Akışı (Authentication Flow)
+### 1. Kurulum ve Aktifleştirme Süreci (2FA Setup)
+1. **QR Kod Üretimi (`/totp/setup`)**: Giriş yapmış olan bir kullanıcı, 2FA özelliğini aktifleştirmek için bu talebi gönderir. Sunucu, `dev.samstevens.totp` kütüphanesini kullanarak benzersiz bir `totpSecret` (gizli anahtar) üretir ve kullanıcının Authenticator uygulamasına taratabilmesi için Base64 formatında bir QR Kod görseli üretip döner.
+2. **2FA'yı Aktif Etme (`/totp/enable`)**: Kullanıcı uygulamaya eklediği hesaptan ürettiği ilk 6 haneli kodu sunucuya gönderir. Kod doğrulanırsa `mfaEnabled` alanı `true` yapılır.
 
+### 2. Giriş Aşamaları (Two-Step Login Flow)
+1. **Adım 1: Kullanıcı Girişi (`/login`)**:
+   Kullanıcı adı ve şifre kontrol edilir. Eğer kullanıcının `mfaEnabled = true` ise, sunucu doğrudan sisteme erişim veren Access Token'ı **dönmez**. Bunun yerine, claim alanında `mfaPending = true` bilgisi yer alan kısa ömürlü bir **Pre-Auth JWT** üretir ve yanıt olarak `"MFA_REQUIRED"` mesajı verir.
+2. **Güvenlik Filtresi Sınırlandırması (`ROLE_PRE_AUTH`)**:
+   `JwtAuthenticationFilter`, gelen token'da `mfaPending = true` flag'ini görürse kullanıcının gerçek rollerini (`USER`/`ADMIN`) geçici olarak maskeler ve ona sadece **`ROLE_PRE_AUTH`** yetkisini atar. `SecurityConfig.java` yapılandırması gereği, bu yetkiye sahip kullanıcılar sadece `/totp/verify-login` endpoint'ine erişebilir; diğer tüm korumalı API'lere erişimleri engellenir.
+3. **Adım 2: TOTP Kodu Doğrulama (`/totp/verify-login`)**:
+   Kullanıcı, Pre-Auth JWT'sini header'da (Bearer) göndererek ve Authenticator uygulamasındaki güncel 6 haneli kodu sunarak bu endpoint'i tetikler. Kod doğrulanırsa, kullanıcının gerçek rollerini barındıran asıl **Access Token** ve **Refresh Token** oluşturularak giriş başarıyla tamamlanır.
+
+---
+
+## 🛠️ Bu Branch'te Yapılanlar & Teknik Mimari
+
+### 1. Yeni Eklenen Sınıflar ve Yapılar
+*   **`TotpService`**: `dev.samstevens.totp` tabanlı secret generator, QR generator (ZxingPngQrGenerator) ve kod doğrulama (isValidCode) bileşenlerini barındıran ana servis sınıfıdır.
+*   **`TotpSetupResponse` (DTO)**: Üretilen gizli anahtarı (secret) ve Base64 formatındaki QR kod görselini istemciye taşır.
+*   **`Employee` Sınıfı Güncellemeleri**:
+    *   `totpSecret` (String): Kullanıcıya özel üretilen gizli TOTP anahtarı.
+    *   `mfaEnabled` (boolean): İki aşamalı doğrulamanın aktif olup olmadığı flag'i.
+*   **`JwtAuthenticationFilter` Sınırlandırması**: Token doğrulama aşamasında `jwtUtil.isMfaPending(jwt)` kontrolüyle kullanıcıyı `ROLE_PRE_AUTH` rolüne atar.
+
+### 2. Akış Diyagramı (TOTP Login Flow)
 ```mermaid
 sequenceDiagram
-    participant Client as İstemci (Postman/UI)
+    participant User as Kullanıcı / Authenticator
+    participant Controller as AuthController
     participant Filter as JwtAuthenticationFilter
+    participant Service as AuthService
+    participant Totp as TotpService
     participant DB as MySQL Veritabanı
-    participant Context as SecurityContextHolder
 
-    Client->>Filter: İstek gönderir (Header: Bearer <Token>)
-    Filter->>Filter: Token imzasını ve süresini doğrular (JwtUtil)
-    Filter->>DB: Username ile veritabanından kullanıcıyı sorgular (loadUserByUsername)
-    DB-->>Filter: Güncel kullanıcıyı (Roles/Authorities dahil) döner
-    Filter->>Context: Kimlik doğrulanmış principal'ı SecurityContext'e yazar
-    Filter-->>Client: İsteğe izin verilir ve Controller çalıştırılır
+    User->>Controller: POST /login (username, password)
+    Controller->>Service: login(request)
+    Service->>DB: Kullanıcıyı Sorgula
+    alt mfaEnabled == true ise
+        Service->>Service: Pre-Auth JWT Üret (mfaPending = true)
+        Controller-->>User: "MFA_REQUIRED" & Pre-Auth JWT
+    end
+
+    Note over User, DB: Kullanıcı Pre-Auth JWT ve Authenticator kodunu gönderir:
+    User->>Filter: POST /totp/verify-login?code=<6_haneli_kod> (Auth Header: Bearer <Pre-Auth-JWT>)
+    Filter->>Filter: Token'ı doğrular ve mfaPending=true tespit eder
+    Filter->>Filter: Kullanıcıya sadece ROLE_PRE_AUTH rolü tanımlar
+    Filter->>Controller: İsteği Controller'a iletir (Güvenlikten Geçti)
+    Controller->>Service: verifyTotpLogin(username, code)
+    Service->>Totp: verifyCode(secret, code)
+    alt Kod Doğruysa
+        Service->>Service: Asıl Access Token & Refresh Token Üret (Gerçek Roller Dahil)
+        Controller-->>User: HTTP 200 (Asıl Tokenlar)
+    else Kod Yanlışsa
+        Controller-->>User: HTTP 401 Unauthorized (Bad Credentials)
+    end
 ```
-
-1.  **Güvenlik Öncelikli Yöntem (Mevcut Uygulama):** Filtre, gelen her istekte token'dan sadece `username` bilgisini çıkarır ve ardından `CustomUserDetailsService` üzerinden veritabanına giderek güncel rolleri/yetkileri sorgular. Bu yöntem sayesinde kullanıcının hesabı askıya alındığında, silindiğinde veya rolü değiştirildiğinde değişiklikler anında etki eder.
-2.  **JWT Yapısı:** `JwtUtil.java` sınıfı, token oluşturulurken token gövdesine (claims) aşağıdaki bilgileri gömer:
-    *   `subject` (Username)
-    *   `email`
-    *   `role` (USER, ADMIN)
-    *   `employeeId`
-3.  **Özel Hata Yakalayıcılar (Custom Security Handlers):**
-    *   `JwtAuthenticationEntryPoint`: Kimlik doğrulaması olmadan korumalı bir kaynağa erişmeye çalışan isteklere `401 Unauthorized` hata şablonu döner.
-    *   `JwtAccessDeniedHandler`: Giriş yapmış fakat yetkisi yetersiz olan (örneğin ADMIN sayfasına girmeye çalışan bir USER) kullanıcılara `403 Forbidden` hata şablonu döner.
-
----
-
-## 🛠️ Veritabanı Modeli ve Validasyonlar
-
-### Employee (Çalışan) Entitesi
-
-Veritabanında saklanan çalışan bilgileri ve tipleri aşağıdaki gibidir:
-
-| Alan Adı | Tip | Açıklama |
-| :--- | :--- | :--- |
-| `id` | Long (PK) | Otomatik artan benzersiz çalışan ID'si |
-| `username` | String | Benzersiz kullanıcı adı |
-| `passwordHash` | String | BCrypt ile şifrelenmiş parola |
-| `firstName` | String | Çalışanın adı |
-| `lastName` | String | Çalışanın soyadı |
-| `tcNo` | String | Benzersiz T.C. Kimlik Numarası |
-| `birthDate` | LocalDate | Doğum tarihi |
-| `gender` | String | Cinsiyet |
-| `phoneNumber` | String | Benzersiz telefon numarası |
-| `email` | String | Benzersiz e-posta adresi |
-| `address` | String | İkametgah adresi |
-| `role` | Enum (Role) | `USER` veya `ADMIN` |
-
-### 🔒 Özel Şifre Doğrulaması (`@Password`)
-
-Sistemde şifre güvenliğini üst düzeye çıkarmak için `@Password` adında özel bir anotasyon ve `PasswordValidation` doğrulayıcısı tanımlanmıştır. Bu doğrulayıcı regex kullanarak şifrenin şu kurallara uymasını zorunlu kılar:
-*   En az 8, en fazla 64 karakter uzunluğunda olmalıdır.
-*   En az bir küçük harf içermelidir.
-*   En az bir büyük harf içermelidir.
-*   En az bir rakam içermelidir.
-*   En az bir özel karakter (örn: `@, #, $, %, ^, &, +`) içermelidir.
-*   Boşluk karakteri (` `) içermemelidir.
 
 ---
 
 ## 🗺️ API Uç Noktaları (Endpoints)
 
-### 1. Kimlik Doğrulama Servisi (Auth Controller)
-Tüm istekler `/api/v1/auth/**` altındadır ve bu uç noktalar herkese açıktır (`permitAll()`).
+### TOTP 2FA Yönetim Endpoint'leri
 
-*   **POST** `/api/v1/auth/register`
-    *   **Açıklama:** Yeni bir çalışan kaydı oluşturur. Varsayılan olarak `ROLE_USER` yetkisi atanır.
-    *   **İstek Gövdesi (Request Body):** `EmployeeRegisterRequest` (username, password, tcNo, phoneNumber, email)
-*   **POST** `/api/v1/auth/login`
-    *   **Açıklama:** Kullanıcı bilgilerini doğrular ve geçerli bir JWT (Access Token) döndürür.
-    *   **İstek Gövdesi (Request Body):** `EmployeeLoginRequest` (username, password)
-
-### 2. Çalışan Yönetim Servisi (Employee Controller)
-Tüm istekler `/api/v1/employees/**` altındadır ve isteklerin yetkilendirilmiş (authenticated) olması gerekir.
-
-*   **GET** `/api/v1/employees/all`
-    *   **Yetki:** Sadece `ADMIN` (`@PreAuthorize("hasRole('ADMIN')")`)
-    *   **Açıklama:** Sistemdeki tüm çalışanların listesini döner.
-*   **DELETE** `/api/v1/employees/{id}`
-    *   **Yetki:** Sadece `ADMIN` (`@PreAuthorize("hasRole('ADMIN')")`)
-    *   **Açıklama:** Belirtilen ID'ye sahip çalışanı sistemden siler.
-*   **GET** `/api/v1/employees`
-    *   **Yetki:** `ADMIN` veya `USER` (`@PreAuthorize("hasAnyRole('ADMIN','USER')")`)
-    *   **Açıklama:** Giriş yapan çalışanın (kendi token'ından tespit edilen) detaylı profil bilgilerini döner.
-*   **PUT** `/api/v1/employees`
-    *   **Yetki:** Giriş yapmış tüm kullanıcılar.
-    *   **Açıklama:** Giriş yapan çalışanın profil bilgilerini (isim, soyisim, adres, telefon, e-posta vb.) günceller.
-
----
-
-## ⚙️ Kurulum ve Çalıştırma
-
-### 1. Ön Gereksinimler
-*   Java 17 (JDK) kurulu olmalı.
-*   MySQL veritabanı sunucusu çalışır durumda olmalı ve `spring_security_db` adında bir şemaya sahip olmalı.
-
-### 2. Yapılandırma (`application.properties`)
-Veritabanı bağlantısı ve JWT ayarları için ortam değişkenlerinin (Environment Variables) tanımlanması gerekir.
-
-Aşağıdaki değişkenleri sisteminizde veya IDE'nizde tanımlayabilirsiniz:
-*   `USERNAME`: MySQL kullanıcı adınız.
-*   `PASSWORD`: MySQL şifreniz.
-*   `SECRET`: JWT'leri imzalamak için kullanılacak Base64 formatında kodlanmış gizli anahtarınız (Örn: en az 256-bit uzunluğunda güçlü bir hash).
-
-### 3. Uygulamayı Çalıştırma
-Projeyi derlemek ve çalıştırmak için proje kök dizininde aşağıdaki Maven komutlarını çalıştırın:
-
-```bash
-# Bağımlılıkları yükleyin ve derleyin
-mvn clean install
-
-# Uygulamayı çalıştırın (Varsayılan Port: 9094)
-mvn spring-boot:run
-```
-
----
-
-## 🔍 Sık Karşılaşılan Sorunlar ve Çözümleri
-
-### ❓ Rol Yetkisi Yetersiz Olduğunda Neden `403 Forbidden` Yerine `500 Internal Server Error` Dönen Hata Alıyorum?
-
-**Sebep:** 
-Eğer `@PreAuthorize("hasRole('ADMIN')")` ile korunan bir yere yetkisiz girdiğinizde `GlobalExceptionHandler.java` içindeki generic `@ExceptionHandler(Exception.class)` metodu, fırlatılan `AccessDeniedException` istisnasını yakalar. Bu nedenle hata Spring Security'nin filtre zincirine geri iletilemediği için `500 Internal Server Error` olarak döner ve `JwtAccessDeniedHandler` devreye girmez.
-
-**Çözüm:**
-`GlobalExceptionHandler.java` içerisine aşağıdaki istisna metodunu ekleyerek hatayı filtre zincirine geri fırlatabilirsiniz:
-
-```java
-import org.springframework.security.access.AccessDeniedException;
-
-@ExceptionHandler(AccessDeniedException.class)
-public void handleAccessDeniedException(AccessDeniedException ex) throws AccessDeniedException {
-    throw ex; // Hatanın JwtAccessDeniedHandler tarafından 403 olarak işlenmesini sağlar.
-}
-```
+*   **POST** `/api/v1/auth/totp/setup`
+    *   **Açıklama:** Google Authenticator kurulumu için QR Kod ve Secret üretir. (Giriş yapmış olmak gerekir).
+    *   **Yanıt Gövdesi:** `TotpSetupResponse` `{ "secret": "ABCD1234...", "qrCodeImage": "data:image/png;base64,..." }`
+*   **POST** `/api/v1/auth/totp/enable?code={code}`
+    *   **Açıklama:** QR kodu tarattıktan sonra gelen ilk kodu doğrulayarak kullanıcının 2FA özelliğini tamamen aktif eder.
+*   **POST** `/api/v1/auth/totp/verify-login?code={code}`
+    *   **Açıklama:** `/login` aşamasından sonra elde edilen Pre-Auth JWT ile çağrılır. 6 haneli TOTP kodunu doğrular ve asıl giriş token'larını döndürür. (Sadece `ROLE_PRE_AUTH` yetkisiyle erişilebilir).

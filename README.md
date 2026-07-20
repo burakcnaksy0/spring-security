@@ -1,164 +1,107 @@
-# 🛡️ Employee Management & Spring Security JWT API
+# 🛡️ Employee Management & Spring Security JWT API (email-verification Branch)
 
-Bu proje, **Spring Boot 3.x / 4.x** (Spring Boot 4.1.0-SNAPSHOT parent sürümü) ve **Spring Security 6.x** tabanlı, durumsuz (stateless) **JWT (JSON Web Token)** doğrulama mimarisine sahip gelişmiş bir Çalışan (Employee) Yönetim API'sidir. 
-
-Proje kapsamında rol bazlı yetkilendirme (RBAC - Role-Based Access Control), veri doğrulama (Validation), özel şifre kısıtlamaları ve özelleştirilmiş güvenlik hata yakalayıcıları (Custom Exception Handling) gibi modern yazılım mimarisi bileşenleri uygulanmıştır.
+Bu branch, **Spring Security 6.x** ve **Spring Boot 3.x/4.x** tabanlı projemize, kullanıcıların sisteme giriş yapabilmeden önce e-posta adreslerini doğrulamalarını zorunlu kılan **E-posta Doğrulama (Email Verification)** mekanizmasını entegre eder.
 
 ---
 
-## 🚀 Teknolojiler ve Bağımlılıklar
+## 📌 Bu Branch'in Amacı ve Mantığı
 
-Proje aşağıdaki modern kütüphaneler ve teknolojilerle inşa edilmiştir:
-
-*   **Java 17** (LTS)
-*   **Spring Boot 4.1.0 (Parent Starter)**
-*   **Spring Security 6.x** (Stateless, JWT entegrasyonlu)
-*   **JJWT (Java JWT) 0.12.7** (Token oluşturma, imzalama ve doğrulama işlemleri için)
-*   **Spring Data JPA & Hibernate** (Veri erişim katmanı)
-*   **MySQL Connector J** (İlişkisel veritabanı sürücüsü)
-*   **Spring Boot Starter Validation** (Giriş doğrulamaları)
-*   **Lombok** (Kazan plakası/boilerplate kodların azaltılması amacıyla)
+`email-verification` branch'inin temel amacı, sahte veya geçersiz e-posta adresleriyle kayıt yapılmasını önlemek ve hesap güvenliğini artırmaktır. Sistemin mantığı şu adımlardan oluşur:
+1. **Kayıt Esnasında Pasif Hesap**: Kullanıcı kayıt olduğunda (`/register`), `Employee` tablosundaki `enabled` alanı varsayılan olarak `false` (pasif) olarak kaydedilir.
+2. **Doğrulama Token'ı Üretimi**: Benzersiz bir UUID token (`VerificationToken`) oluşturulur, bu token ilgili çalışan (Employee) ile ilişkilendirilir ve veritabanına kaydedilir.
+3. **E-posta Gönderimi**: Kullanıcının belirttiği e-posta adresine, içinde doğrulama token'ı barındıran bir bağlantı (link) gönderilir.
+4. **Giriş Engeli**: E-posta doğrulaması tamamlanmamış (yani `enabled = false` olan) kullanıcılar sisteme giriş yapmaya çalıştıklarında kimlik doğrulama engellenir ve `EmailNotVerifiedException` fırlatılır.
+5. **E-posta Aktivasyonu**: Kullanıcı e-postadaki linke tıkladığında token doğrulanır, ilgili kullanıcının `enabled` alanı `true` yapılır ve token veritabanından temizlenir.
 
 ---
 
-## 🔑 Güvenlik Mimarisi
+## 🛠️ Bu Branch'te Yapılanlar & Teknik Mimari
 
-Uygulama, oturum bilgilerini sunucuda tutmayan (session-less) tamamen **durumsuz (Stateless)** bir güvenlik modeli izler.
+### 1. Yeni Eklenen ve Güncellenen Sınıflar
+*   **`VerificationToken` (Entity)**: E-posta doğrulama token'ını, oluşturulduğu çalışanı ve son geçerlilik süresini (`expiryDate`) tutan veritabanı tablosudur.
+*   **`VerificationTokenService`**: Token'ı üreten, süresini kontrol eden ve doğrulayan ana iş mantığı sınıfıdır. Token geçerlilik süresi (varsayılan olarak 24 saat) yapılandırmadan okunur.
+*   **`EmailService`**: `JavaMailSender` kullanarak şablon e-postayı hazırlar ve kullanıcıya gönderir.
+*   **`EmailNotVerifiedException` (Exception)**: Doğrulanmamış kullanıcı girişlerinde fırlatılan özel bir çalışma zamanı istisnasıdır.
+*   **`GlobalExceptionHandler`**: `EmailNotVerifiedException` hatasını yakalayarak istemciye anlamlı bir JSON hata formatı dönecek şekilde güncellenmiştir.
+*   **`AuthService`**: 
+    *   `register()` metoduna e-posta doğrulama akışı (token oluşturma ve mail gönderme) eklenmiştir.
+    *   `login()` metodunda kullanıcının `enabled` durumu sorgulanıp doğrulanmamışsa giriş engellenmiştir.
+    *   `verifyEmail(token)` adında yeni bir metot eklenerek, maile tıklayan kullanıcının aktif edilmesi sağlanmıştır.
 
-### Kimlik Doğrulama Akışı (Authentication Flow)
-
+### 2. Doğrulama Linki Akışı (Verification Flow)
 ```mermaid
 sequenceDiagram
-    participant Client as İstemci (Postman/UI)
-    participant Filter as JwtAuthenticationFilter
+    participant User as Kullanıcı
+    participant Controller as AuthController
+    participant Service as AuthService
+    participant Email as EmailService
     participant DB as MySQL Veritabanı
-    participant Context as SecurityContextHolder
 
-    Client->>Filter: İstek gönderir (Header: Bearer <Token>)
-    Filter->>Filter: Token imzasını ve süresini doğrular (JwtUtil)
-    Filter->>DB: Username ile veritabanından kullanıcıyı sorgular (loadUserByUsername)
-    DB-->>Filter: Güncel kullanıcıyı (Roles/Authorities dahil) döner
-    Filter->>Context: Kimlik doğrulanmış principal'ı SecurityContext'e yazar
-    Filter-->>Client: İsteğe izin verilir ve Controller çalıştırılır
+    User->>Controller: POST /register (Kayıt İsteyi)
+    Controller->>Service: register(request)
+    Service->>DB: Employee Kaydet (enabled = false)
+    Service->>Service: VerificationToken Oluştur (UUID)
+    Service->>DB: Token Kaydet (Expiry: +24 Saat)
+    Service->>Email: sendVerificationEmail(employee, token)
+    Email-->>User: E-posta Gönder (Doğrulama Linkli)
+    Controller-->>User: HTTP 201 (Başarılı Kayıt Yanıtı)
+
+    Note over User, DB: Kullanıcı E-postasındaki linke tıklar:
+    User->>Controller: GET /verify?token=<token>
+    Controller->>Service: verifyEmail(token)
+    Service->>DB: Token'ı ve Süresini Sorgula
+    alt Token Geçerli ve Süresi Dolmamışsa
+        Service->>DB: Employee güncelle (enabled = true)
+        Service->>DB: VerificationToken'ı sil
+        Controller-->>User: "Email successfully verified"
+    else Token Geçersiz veya Süresi Dolmuşsa
+        Controller-->>User: Hata Yanıtı (Token expired/invalid)
+    end
 ```
-
-1.  **Güvenlik Öncelikli Yöntem (Mevcut Uygulama):** Filtre, gelen her istekte token'dan sadece `username` bilgisini çıkarır ve ardından `CustomUserDetailsService` üzerinden veritabanına giderek güncel rolleri/yetkileri sorgular. Bu yöntem sayesinde kullanıcının hesabı askıya alındığında, silindiğinde veya rolü değiştirildiğinde değişiklikler anında etki eder.
-2.  **JWT Yapısı:** `JwtUtil.java` sınıfı, token oluşturulurken token gövdesine (claims) aşağıdaki bilgileri gömer:
-    *   `subject` (Username)
-    *   `email`
-    *   `role` (USER, ADMIN)
-    *   `employeeId`
-3.  **Özel Hata Yakalayıcılar (Custom Security Handlers):**
-    *   `JwtAuthenticationEntryPoint`: Kimlik doğrulaması olmadan korumalı bir kaynağa erişmeye çalışan isteklere `401 Unauthorized` hata şablonu döner.
-    *   `JwtAccessDeniedHandler`: Giriş yapmış fakat yetkisi yetersiz olan (örneğin ADMIN sayfasına girmeye çalışan bir USER) kullanıcılara `403 Forbidden` hata şablonu döner.
 
 ---
 
-## 🛠️ Veritabanı Modeli ve Validasyonlar
+## 🔑 E-posta Doğrulama Veritabanı Modeli
 
-### Employee (Çalışan) Entitesi
-
-Veritabanında saklanan çalışan bilgileri ve tipleri aşağıdaki gibidir:
-
+### VerificationToken Tablosu
 | Alan Adı | Tip | Açıklama |
 | :--- | :--- | :--- |
-| `id` | Long (PK) | Otomatik artan benzersiz çalışan ID'si |
-| `username` | String | Benzersiz kullanıcı adı |
-| `passwordHash` | String | BCrypt ile şifrelenmiş parola |
-| `firstName` | String | Çalışanın adı |
-| `lastName` | String | Çalışanın soyadı |
-| `tcNo` | String | Benzersiz T.C. Kimlik Numarası |
-| `birthDate` | LocalDate | Doğum tarihi |
-| `gender` | String | Cinsiyet |
-| `phoneNumber` | String | Benzersiz telefon numarası |
-| `email` | String | Benzersiz e-posta adresi |
-| `address` | String | İkametgah adresi |
-| `role` | Enum (Role) | `USER` veya `ADMIN` |
-
-### 🔒 Özel Şifre Doğrulaması (`@Password`)
-
-Sistemde şifre güvenliğini üst düzeye çıkarmak için `@Password` adında özel bir anotasyon ve `PasswordValidation` doğrulayıcısı tanımlanmıştır. Bu doğrulayıcı regex kullanarak şifrenin şu kurallara uymasını zorunlu kılar:
-*   En az 8, en fazla 64 karakter uzunluğunda olmalıdır.
-*   En az bir küçük harf içermelidir.
-*   En az bir büyük harf içermelidir.
-*   En az bir rakam içermelidir.
-*   En az bir özel karakter (örn: `@, #, $, %, ^, &, +`) içermelidir.
-*   Boşluk karakteri (` `) içermemelidir.
+| `id` | Long (PK) | Otomatik artan benzersiz ID |
+| `token` | String | Benzersiz UUID doğrulama token'ı |
+| `employee_id` | Long (FK) | Token'ın ait olduğu çalışan (Employee) |
+| `expiryDate` | Instant | Token'ın son kullanma zamanı (Expiration date) |
 
 ---
 
 ## 🗺️ API Uç Noktaları (Endpoints)
 
-### 1. Kimlik Doğrulama Servisi (Auth Controller)
-Tüm istekler `/api/v1/auth/**` altındadır ve bu uç noktalar herkese açıktır (`permitAll()`).
+### Güncellenen ve Yeni Eklenen Uç Noktalar
 
 *   **POST** `/api/v1/auth/register`
-    *   **Açıklama:** Yeni bir çalışan kaydı oluşturur. Varsayılan olarak `ROLE_USER` yetkisi atanır.
-    *   **İstek Gövdesi (Request Body):** `EmployeeRegisterRequest` (username, password, tcNo, phoneNumber, email)
+    *   **Değişiklik:** Artık kullanıcıyı pasif kaydeder ve e-posta doğrulama linki gönderir.
 *   **POST** `/api/v1/auth/login`
-    *   **Açıklama:** Kullanıcı bilgilerini doğrular ve geçerli bir JWT (Access Token) döndürür.
-    *   **İstek Gövdesi (Request Body):** `EmployeeLoginRequest` (username, password)
-
-### 2. Çalışan Yönetim Servisi (Employee Controller)
-Tüm istekler `/api/v1/employees/**` altındadır ve isteklerin yetkilendirilmiş (authenticated) olması gerekir.
-
-*   **GET** `/api/v1/employees/all`
-    *   **Yetki:** Sadece `ADMIN` (`@PreAuthorize("hasRole('ADMIN')")`)
-    *   **Açıklama:** Sistemdeki tüm çalışanların listesini döner.
-*   **DELETE** `/api/v1/employees/{id}`
-    *   **Yetki:** Sadece `ADMIN` (`@PreAuthorize("hasRole('ADMIN')")`)
-    *   **Açıklama:** Belirtilen ID'ye sahip çalışanı sistemden siler.
-*   **GET** `/api/v1/employees`
-    *   **Yetki:** `ADMIN` veya `USER` (`@PreAuthorize("hasAnyRole('ADMIN','USER')")`)
-    *   **Açıklama:** Giriş yapan çalışanın (kendi token'ından tespit edilen) detaylı profil bilgilerini döner.
-*   **PUT** `/api/v1/employees`
-    *   **Yetki:** Giriş yapmış tüm kullanıcılar.
-    *   **Açıklama:** Giriş yapan çalışanın profil bilgilerini (isim, soyisim, adres, telefon, e-posta vb.) günceller.
+    *   **Değişiklik:** E-posta doğrulanmamışsa `400 Bad Request` veya özel hata koduyla birlikte girişi engeller.
+*   **GET** `/api/v1/auth/verify?token={token}`
+    *   **Açıklama:** Yeni eklenen bu uç nokta, kullanıcının e-postadaki linke tıklamasıyla tetiklenir ve hesabı aktif eder.
 
 ---
 
-## ⚙️ Kurulum ve Çalıştırma
+## ⚙️ Kurulum ve E-posta Yapılandırması (`application.properties`)
 
-### 1. Ön Gereksinimler
-*   Java 17 (JDK) kurulu olmalı.
-*   MySQL veritabanı sunucusu çalışır durumda olmalı ve `spring_security_db` adında bir şemaya sahip olmalı.
+E-posta gönderebilmek için SMTP sunucusu ayarlarının yapılması gerekir. Gerçek bir SMTP sunucusu (Gmail vb.) veya test için **Maildev / Mailhog** gibi yerel SMTP araçları kullanılabilir.
 
-### 2. Yapılandırma (`application.properties`)
-Veritabanı bağlantısı ve JWT ayarları için ortam değişkenlerinin (Environment Variables) tanımlanması gerekir.
+`application.properties` dosyasına eklenen değişkenler:
+```properties
+# Spring Mail Configuration
+spring.mail.host=localhost
+spring.mail.port=1025
+spring.mail.username=test
+spring.mail.password=test
+spring.mail.properties.mail.smtp.auth=false
+spring.mail.properties.mail.smtp.starttls.enable=false
 
-Aşağıdaki değişkenleri sisteminizde veya IDE'nizde tanımlayabilirsiniz:
-*   `USERNAME`: MySQL kullanıcı adınız.
-*   `PASSWORD`: MySQL şifreniz.
-*   `SECRET`: JWT'leri imzalamak için kullanılacak Base64 formatında kodlanmış gizli anahtarınız (Örn: en az 256-bit uzunluğunda güçlü bir hash).
-
-### 3. Uygulamayı Çalıştırma
-Projeyi derlemek ve çalıştırmak için proje kök dizininde aşağıdaki Maven komutlarını çalıştırın:
-
-```bash
-# Bağımlılıkları yükleyin ve derleyin
-mvn clean install
-
-# Uygulamayı çalıştırın (Varsayılan Port: 9094)
-mvn spring-boot:run
+# JWT & Verification Config
+jwt.verification-expiration=86400000# 24 Saat (Milisaniye cinsinden)
 ```
-
----
-
-## 🔍 Sık Karşılaşılan Sorunlar ve Çözümleri
-
-### ❓ Rol Yetkisi Yetersiz Olduğunda Neden `403 Forbidden` Yerine `500 Internal Server Error` Dönen Hata Alıyorum?
-
-**Sebep:** 
-Eğer `@PreAuthorize("hasRole('ADMIN')")` ile korunan bir yere yetkisiz girdiğinizde `GlobalExceptionHandler.java` içindeki generic `@ExceptionHandler(Exception.class)` metodu, fırlatılan `AccessDeniedException` istisnasını yakalar. Bu nedenle hata Spring Security'nin filtre zincirine geri iletilemediği için `500 Internal Server Error` olarak döner ve `JwtAccessDeniedHandler` devreye girmez.
-
-**Çözüm:**
-`GlobalExceptionHandler.java` içerisine aşağıdaki istisna metodunu ekleyerek hatayı filtre zincirine geri fırlatabilirsiniz:
-
-```java
-import org.springframework.security.access.AccessDeniedException;
-
-@ExceptionHandler(AccessDeniedException.class)
-public void handleAccessDeniedException(AccessDeniedException ex) throws AccessDeniedException {
-    throw ex; // Hatanın JwtAccessDeniedHandler tarafından 403 olarak işlenmesini sağlar.
-}
-```
+> [!TIP]
+> Eğer Gmail SMTP kullanacaksanız, `spring.mail.host=smtp.gmail.com`, port `587` veya `465` yapıp şifre alanına Gmail'den üreteceğiniz **Uygulama Şifresini (App Password)** yazmalısınız.

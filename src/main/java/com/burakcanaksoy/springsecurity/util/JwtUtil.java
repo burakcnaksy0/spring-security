@@ -53,6 +53,7 @@ public class JwtUtil {
 
     private String createToken(Map<String, Object> claims, String subject) {
         return Jwts.builder()
+                .setId(UUID.randomUUID().toString())
                 .setClaims(claims)
                 .setSubject(subject)
                 .setIssuedAt(new Date(System.currentTimeMillis()))
@@ -72,6 +73,16 @@ public class JwtUtil {
     public <T> T extractClaim(String token, Function<Claims, T> resolver) {
         Claims claims = extractAllClaims(token);
         return resolver.apply(claims);
+    }
+
+    public String extractJti(String token){
+        return extractClaim(token, Claims::getId);
+    }
+
+    public long getRemainingValidityExpirationMillis(String token) {
+        Claims claims = extractAllClaims(token);
+        Date expiration = claims.getExpiration();
+        return expiration.getTime() - System.currentTimeMillis();
     }
 
     public Long extractId(String token) {

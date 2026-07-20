@@ -30,6 +30,7 @@ public class AuthService {
     private final EmailService emailService;
     private final OtpTokenService otpTokenService;
     private final TotpService totpService;
+    private final TokenBlacklistService tokenBlacklistService;
     //private final AuthenticationManager authenticationManager;
 
     public AuthResponse register(EmployeeRegisterRequest registerRequest) {
@@ -124,10 +125,13 @@ public class AuthService {
                 }).orElseThrow(() -> new RuntimeException("Invalid refresh token"));
     }
 
-    public String logout() {
+    public String logout(String jwt) {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         CustomUserPrincipal principal = (CustomUserPrincipal) authentication.getPrincipal();
         refreshTokenService.deleteEmployeeId(principal.getId());
+
+        long remainingValidityExpirationMillis = jwtUtil.getRemainingValidityExpirationMillis(jwt);
+        tokenBlacklistService.blacklistToken(jwt, remainingValidityExpirationMillis);
         return "Logout successfully with username : " + principal.getUsername();
     }
 

@@ -3,6 +3,7 @@ package com.burakcanaksoy.springsecurity.controller;
 import com.burakcanaksoy.springsecurity.dto.request.*;
 import com.burakcanaksoy.springsecurity.dto.response.*;
 import com.burakcanaksoy.springsecurity.service.AuthService;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -33,8 +34,10 @@ public class AuthController {
     }
 
     @PostMapping("/logout")
-    public ResponseEntity<String> logout() {
-        return ResponseEntity.ok().body(authService.logout());
+    public ResponseEntity<String> logout(HttpServletRequest request) {
+        String authorization = request.getHeader("Authorization");
+        String jwt = authorization.substring(7);
+        return ResponseEntity.ok().body(authService.logout(jwt));
     }
 
     @DeleteMapping("/delete/{id}")

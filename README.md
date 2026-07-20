@@ -1,72 +1,55 @@
-# 🛡️ Employee Management & Spring Security JWT API
+# 🛡️ Employee Management & Spring Security JWT API (master Branch)
 
-Bu proje, **Spring Boot 3.x / 4.x** (Spring Boot 4.1.0-SNAPSHOT parent sürümü) ve **Spring Security 6.x** tabanlı, durumsuz (stateless) **JWT (JSON Web Token)** doğrulama mimarisine sahip gelişmiş bir Çalışan (Employee) Yönetim API'sidir. 
-
-Proje kapsamında rol bazlı yetkilendirme (RBAC - Role-Based Access Control), veri doğrulama (Validation), özel şifre kısıtlamaları ve özelleştirilmiş güvenlik hata yakalayıcıları (Custom Exception Handling) gibi modern yazılım mimarisi bileşenleri uygulanmıştır.
+Bu branch, **Spring Security 6.x** ve **Spring Boot 3.x/4.x** tabanlı, durumsuz (stateless) **JWT (JSON Web Token)** doğrulama mimarisine sahip gelişmiş Çalışan (Employee) Yönetim API'sinin **temel çekirdeğidir (base branch)**. Projedeki diğer tüm özellik dalları (branch'leri), bu temel güvenlik ve kullanıcı yönetim yapısı üzerine kurulmuştur.
 
 ---
 
-## 🚀 Teknolojiler ve Bağımlılıklar
+## 📌 Bu Branch'in Amacı ve Mantığı
 
-Proje aşağıdaki modern kütüphaneler ve teknolojilerle inşa edilmiştir:
+`master` branch'inin amacı, uygulamanın kimlik doğrulama (Authentication), yetkilendirme (Authorization/RBAC) ve kullanıcı veritabanı yönetim altyapısını kurmaktır. Güvenlik mimarisi tamamen **durumsuz (Stateless)** olarak tasarlanmıştır; sunucu tarafında HTTP Session tutulmaz. Bunun yerine her istek, beraberinde gönderilen JWT (JSON Web Token) ile doğrulanır.
 
-*   **Java 17** (LTS)
-*   **Spring Boot 4.1.0 (Parent Starter)**
-*   **Spring Security 6.x** (Stateless, JWT entegrasyonlu)
-*   **JJWT (Java JWT) 0.12.7** (Token oluşturma, imzalama ve doğrulama işlemleri için)
-*   **Spring Data JPA & Hibernate** (Veri erişim katmanı)
-*   **MySQL Connector J** (İlişkisel veritabanı sürücüsü)
-*   **Spring Boot Starter Validation** (Giriş doğrulamaları)
-*   **Lombok** (Kazan plakası/boilerplate kodların azaltılması amacıyla)
+Bu sürümde temel olarak şu işlevler sağlanmıştır:
+1. **Kullanıcı Kaydı & Güvenli Parola Saklama**: Parolalar, **BCrypt** algoritması kullanılarak hash'lenir.
+2. **Token Tabanlı Kimlik Doğrulama (Access & Refresh Token)**: Başarılı girişte kısa ömürlü bir JWT (Access Token) ve veritabanı destekli, uzun ömürlü bir Refresh Token üretilir.
+3. **Rol Bazlı Yetkilendirme (RBAC)**: Kullanıcılara `USER` veya `ADMIN` rolleri atanarak sistemdeki kaynaklara erişimleri sınırlandırılır.
 
 ---
 
-## 🔑 Güvenlik Mimarisi
+## 🛠️ Bu Branch'te Yapılanlar & Teknik Mimari
 
-Uygulama, oturum bilgilerini sunucuda tutmayan (session-less) tamamen **durumsuz (Stateless)** bir güvenlik modeli izler.
+### 1. Güvenlik Akışı ve Filtre Zinciri (Filter Chain)
+*   **`JwtAuthenticationFilter`**: Gelen her isteğin `Authorization` başlığını inceler. Eğer `Bearer <token>` mevcutsa, token'ın geçerliliğini ve imzasını kontrol eder.
+*   **Veritabanı Senkronize Doğrulama**: Filtre, token'dan sadece `username` bilgisini çıkarır ve ardından `CustomUserDetailsService` aracılığıyla veritabanına giderek güncel rolleri/yetkileri sorgular. Bu yaklaşım, kullanıcının hesabı askıya alındığında veya rolleri değiştiğinde sistemin anında (token süresi dolmadan) tepki vermesini sağlar.
+*   **`SecurityContextHolder`**: Kimliği başarıyla doğrulanan kullanıcının bilgileri Spring Security context'ine set edilir.
 
-### Kimlik Doğrulama Akışı (Authentication Flow)
+### 2. Çift Token (Access & Refresh Token) Mekanizması
+*   **Access Token**: Kısa ömürlüdür (örn. 15-30 dakika). İstekleri doğrulamak için HTTP header üzerinden gönderilir.
+*   **Refresh Token**: Uzun ömürlüdür (örn. 7 gün) ve veritabanındaki `RefreshToken` tablosunda saklanır. Access token süresi bittiğinde, kullanıcı adı ve şifre girmeden `/refresh` isteğiyle yeni bir Access token ve yeni bir Refresh token alınmasını sağlar (Refresh Token Rotation).
+*   **Güvenli Logout**: Kullanıcı `/logout` isteği yaptığında veritabanındaki aktif `RefreshToken` silinir, böylece çalınma ihtimaline karşı eski token geçersiz kılınır.
 
-```mermaid
-sequenceDiagram
-    participant Client as İstemci (Postman/UI)
-    participant Filter as JwtAuthenticationFilter
-    participant DB as MySQL Veritabanı
-    participant Context as SecurityContextHolder
+### 3. Özel Şifre Validasyonu (`@Password`)
+*   Güçlü şifre politikalarını uygulamak için `@Password` anotasyonu ve `PasswordValidation` sınıfı geliştirilmiştir.
+*   **Şifre Kuralları:**
+    *   En az 8, en fazla 64 karakter.
+    *   En az bir büyük harf, bir küçük harf, bir rakam ve bir özel karakter (`@, #, $, %, ^, &, +`).
+    *   Boşluk karakteri içeremez.
 
-    Client->>Filter: İstek gönderir (Header: Bearer <Token>)
-    Filter->>Filter: Token imzasını ve süresini doğrular (JwtUtil)
-    Filter->>DB: Username ile veritabanından kullanıcıyı sorgular (loadUserByUsername)
-    DB-->>Filter: Güncel kullanıcıyı (Roles/Authorities dahil) döner
-    Filter->>Context: Kimlik doğrulanmış principal'ı SecurityContext'e yazar
-    Filter-->>Client: İsteğe izin verilir ve Controller çalıştırılır
-```
-
-1.  **Güvenlik Öncelikli Yöntem (Mevcut Uygulama):** Filtre, gelen her istekte token'dan sadece `username` bilgisini çıkarır ve ardından `CustomUserDetailsService` üzerinden veritabanına giderek güncel rolleri/yetkileri sorgular. Bu yöntem sayesinde kullanıcının hesabı askıya alındığında, silindiğinde veya rolü değiştirildiğinde değişiklikler anında etki eder.
-2.  **JWT Yapısı:** `JwtUtil.java` sınıfı, token oluşturulurken token gövdesine (claims) aşağıdaki bilgileri gömer:
-    *   `subject` (Username)
-    *   `email`
-    *   `role` (USER, ADMIN)
-    *   `employeeId`
-3.  **Özel Hata Yakalayıcılar (Custom Security Handlers):**
-    *   `JwtAuthenticationEntryPoint`: Kimlik doğrulaması olmadan korumalı bir kaynağa erişmeye çalışan isteklere `401 Unauthorized` hata şablonu döner.
-    *   `JwtAccessDeniedHandler`: Giriş yapmış fakat yetkisi yetersiz olan (örneğin ADMIN sayfasına girmeye çalışan bir USER) kullanıcılara `403 Forbidden` hata şablonu döner.
+### 4. İstisna Yönetimi (Exception Handling)
+*   **`JwtAuthenticationEntryPoint`**: Kimlik doğrulaması olmaksızın korumalı kaynaklara erişimlerde `401 Unauthorized` şablonu döner.
+*   **`JwtAccessDeniedHandler`**: Yetkisi yetersiz olan (örneğin ADMIN sayfasına girmeye çalışan USER) kullanıcılara `403 Forbidden` şablonu döner.
+*   **`GlobalExceptionHandler`**: `AccessDeniedException` dahil olmak üzere, `AlreadyExistsException`, `ResourceNotFoundException` ve metot argüman doğrulama hatalarını (`MethodArgumentNotValidException`) yakalayarak standart JSON hata çıktıları üretir.
 
 ---
 
-## 🛠️ Veritabanı Modeli ve Validasyonlar
+## 🔑 Veritabanı Modeli: `Employee` & `RefreshToken`
 
-### Employee (Çalışan) Entitesi
-
-Veritabanında saklanan çalışan bilgileri ve tipleri aşağıdaki gibidir:
-
+### Employee Tablosu
 | Alan Adı | Tip | Açıklama |
 | :--- | :--- | :--- |
-| `id` | Long (PK) | Otomatik artan benzersiz çalışan ID'si |
+| `id` | Long (PK) | Otomatik artan benzersiz ID |
 | `username` | String | Benzersiz kullanıcı adı |
 | `passwordHash` | String | BCrypt ile şifrelenmiş parola |
-| `firstName` | String | Çalışanın adı |
-| `lastName` | String | Çalışanın soyadı |
+| `firstName` / `lastName` | String | İsim ve Soyisim |
 | `tcNo` | String | Benzersiz T.C. Kimlik Numarası |
 | `birthDate` | LocalDate | Doğum tarihi |
 | `gender` | String | Cinsiyet |
@@ -75,90 +58,37 @@ Veritabanında saklanan çalışan bilgileri ve tipleri aşağıdaki gibidir:
 | `address` | String | İkametgah adresi |
 | `role` | Enum (Role) | `USER` veya `ADMIN` |
 
-### 🔒 Özel Şifre Doğrulaması (`@Password`)
-
-Sistemde şifre güvenliğini üst düzeye çıkarmak için `@Password` adında özel bir anotasyon ve `PasswordValidation` doğrulayıcısı tanımlanmıştır. Bu doğrulayıcı regex kullanarak şifrenin şu kurallara uymasını zorunlu kılar:
-*   En az 8, en fazla 64 karakter uzunluğunda olmalıdır.
-*   En az bir küçük harf içermelidir.
-*   En az bir büyük harf içermelidir.
-*   En az bir rakam içermelidir.
-*   En az bir özel karakter (örn: `@, #, $, %, ^, &, +`) içermelidir.
-*   Boşluk karakteri (` `) içermemelidir.
-
 ---
 
 ## 🗺️ API Uç Noktaları (Endpoints)
 
-### 1. Kimlik Doğrulama Servisi (Auth Controller)
-Tüm istekler `/api/v1/auth/**` altındadır ve bu uç noktalar herkese açıktır (`permitAll()`).
+### 1. Kimlik Doğrulama Kontrolörü (`AuthController` - `/api/v1/auth/**`)
+*Bu endpoint'ler herkese açıktır (`permitAll()`).*
 
-*   **POST** `/api/v1/auth/register`
-    *   **Açıklama:** Yeni bir çalışan kaydı oluşturur. Varsayılan olarak `ROLE_USER` yetkisi atanır.
-    *   **İstek Gövdesi (Request Body):** `EmployeeRegisterRequest` (username, password, tcNo, phoneNumber, email)
-*   **POST** `/api/v1/auth/login`
-    *   **Açıklama:** Kullanıcı bilgilerini doğrular ve geçerli bir JWT (Access Token) döndürür.
-    *   **İstek Gövdesi (Request Body):** `EmployeeLoginRequest` (username, password)
+*   **POST** `/register` -> Yeni bir çalışan kaydı oluşturur. Varsayılan olarak `ROLE_USER` yetkisi atanır.
+*   **POST** `/login` -> Kullanıcı bilgilerini doğrular ve `accessToken`, `refreshToken` döner.
+*   **POST** `/refresh` -> Geçerli bir `refreshToken` ile yeni bir `accessToken` ve yeni bir `refreshToken` üretir.
+*   **POST** `/logout` -> Kullanıcının veritabanındaki aktif refresh token'ını silerek oturumu sonlandırır.
 
-### 2. Çalışan Yönetim Servisi (Employee Controller)
-Tüm istekler `/api/v1/employees/**` altındadır ve isteklerin yetkilendirilmiş (authenticated) olması gerekir.
+### 2. Çalışan Yönetim Kontrolörü (`EmployeeController` - `/api/v1/employees/**`)
+*Bu endpoint'ler için kimlik doğrulaması zorunludur.*
 
-*   **GET** `/api/v1/employees/all`
-    *   **Yetki:** Sadece `ADMIN` (`@PreAuthorize("hasRole('ADMIN')")`)
-    *   **Açıklama:** Sistemdeki tüm çalışanların listesini döner.
-*   **DELETE** `/api/v1/employees/{id}`
-    *   **Yetki:** Sadece `ADMIN` (`@PreAuthorize("hasRole('ADMIN')")`)
-    *   **Açıklama:** Belirtilen ID'ye sahip çalışanı sistemden siler.
-*   **GET** `/api/v1/employees`
-    *   **Yetki:** `ADMIN` veya `USER` (`@PreAuthorize("hasAnyRole('ADMIN','USER')")`)
-    *   **Açıklama:** Giriş yapan çalışanın (kendi token'ından tespit edilen) detaylı profil bilgilerini döner.
-*   **PUT** `/api/v1/employees`
-    *   **Yetki:** Giriş yapmış tüm kullanıcılar.
-    *   **Açıklama:** Giriş yapan çalışanın profil bilgilerini (isim, soyisim, adres, telefon, e-posta vb.) günceller.
+*   **GET** `/all` -> Kayıtlı tüm çalışanları listeler (Sadece **ADMIN**).
+*   **DELETE** `/{id}` -> Belirtilen ID'deki çalışanı siler (Sadece **ADMIN**).
+*   **GET** `/` -> Giriş yapan kullanıcının kendi profil bilgilerini getirir (**USER** veya **ADMIN**).
+*   **PUT** `/` -> Giriş yapan kullanıcının profil bilgilerini günceller.
 
 ---
 
 ## ⚙️ Kurulum ve Çalıştırma
 
-### 1. Ön Gereksinimler
-*   Java 17 (JDK) kurulu olmalı.
-*   MySQL veritabanı sunucusu çalışır durumda olmalı ve `spring_security_db` adında bir şemaya sahip olmalı.
-
-### 2. Yapılandırma (`application.properties`)
-Veritabanı bağlantısı ve JWT ayarları için ortam değişkenlerinin (Environment Variables) tanımlanması gerekir.
-
-Aşağıdaki değişkenleri sisteminizde veya IDE'nizde tanımlayabilirsiniz:
-*   `USERNAME`: MySQL kullanıcı adınız.
-*   `PASSWORD`: MySQL şifreniz.
-*   `SECRET`: JWT'leri imzalamak için kullanılacak Base64 formatında kodlanmış gizli anahtarınız (Örn: en az 256-bit uzunluğunda güçlü bir hash).
-
-### 3. Uygulamayı Çalıştırma
-Projeyi derlemek ve çalıştırmak için proje kök dizininde aşağıdaki Maven komutlarını çalıştırın:
-
-```bash
-# Bağımlılıkları yükleyin ve derleyin
-mvn clean install
-
-# Uygulamayı çalıştırın (Varsayılan Port: 9094)
-mvn spring-boot:run
-```
-
----
-
-## 🔍 Sık Karşılaşılan Sorunlar ve Çözümleri
-
-### ❓ Rol Yetkisi Yetersiz Olduğunda Neden `403 Forbidden` Yerine `500 Internal Server Error` Dönen Hata Alıyorum?
-
-**Sebep:** 
-Eğer `@PreAuthorize("hasRole('ADMIN')")` ile korunan bir yere yetkisiz girdiğinizde `GlobalExceptionHandler.java` içindeki generic `@ExceptionHandler(Exception.class)` metodu, fırlatılan `AccessDeniedException` istisnasını yakalar. Bu nedenle hata Spring Security'nin filtre zincirine geri iletilemediği için `500 Internal Server Error` olarak döner ve `JwtAccessDeniedHandler` devreye girmez.
-
-**Çözüm:**
-`GlobalExceptionHandler.java` içerisine aşağıdaki istisna metodunu ekleyerek hatayı filtre zincirine geri fırlatabilirsiniz:
-
-```java
-import org.springframework.security.access.AccessDeniedException;
-
-@ExceptionHandler(AccessDeniedException.class)
-public void handleAccessDeniedException(AccessDeniedException ex) throws AccessDeniedException {
-    throw ex; // Hatanın JwtAccessDeniedHandler tarafından 403 olarak işlenmesini sağlar.
-}
-```
+1. **Gereksinimler**: Java 17, MySQL Server.
+2. **Yapılandırma**: `application.properties` içerisinde veritabanı ayarlarını ve JWT gizli anahtarını (SECRET) çevre değişkenleri (environment variables) veya doğrudan değerler üzerinden tanımlayın:
+   *   `USERNAME`: MySQL kullanıcı adı
+   *   `PASSWORD`: MySQL şifresi
+   *   `SECRET`: Base64 formatında en az 256-bit JWT imza anahtarı
+3. **Derleme ve Çalıştırma**:
+   ```bash
+   mvn clean install
+   mvn spring-boot:run
+   ```

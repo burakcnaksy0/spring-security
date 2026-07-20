@@ -17,12 +17,6 @@ public class AuthController {
 
     private final AuthService authService;
 
-    @DeleteMapping("/delete/{id}")
-    public ResponseEntity<String> delete(@PathVariable Long id){
-
-        return ResponseEntity.ok(authService.delete(id));
-    }
-
     @PostMapping("/register")
     public ResponseEntity<AuthResponse> register(@Valid @RequestBody EmployeeRegisterRequest registerRequest) {
         return ResponseEntity.status(HttpStatus.CREATED).body(authService.register(registerRequest));
@@ -41,6 +35,12 @@ public class AuthController {
     @PostMapping("/logout")
     public ResponseEntity<String> logout() {
         return ResponseEntity.ok().body(authService.logout());
+    }
+
+    @DeleteMapping("/delete/{id}")
+    public ResponseEntity<String> delete(@PathVariable Long id){
+
+        return ResponseEntity.ok(authService.delete(id));
     }
 
     @GetMapping("/verify")

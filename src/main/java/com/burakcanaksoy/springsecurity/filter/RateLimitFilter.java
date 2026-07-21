@@ -4,6 +4,7 @@ import com.burakcanaksoy.springsecurity.rule.RateLimitRule;
 import io.github.bucket4j.Bandwidth;
 import io.github.bucket4j.Bucket;
 import io.github.bucket4j.BucketConfiguration;
+import io.github.bucket4j.ConsumptionProbe;
 import io.github.bucket4j.redis.lettuce.cas.LettuceBasedProxyManager;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
@@ -44,21 +45,36 @@ public class RateLimitFilter extends OncePerRequestFilter {
             return;
         }
 
+        // path + ip
         String rateLimitKey = buildRateLimitKey(request, matchedRule);
-        Bucket bucket = resolveBucket(rateLimitKey, matchedRule);
+        try {
+            Bucket bucket = resolveBucket(rateLimitKey, matchedRule);
+            ConsumptionProbe probe = bucket.tryConsumeAndReturnRemaining(1);
+            long resetSeconds = probe.getNanosToWaitForRefill();
 
-        if (bucket.tryConsume(1)) {
-            filterChain.doFilter(request, response);
-        } else {
-            response.setStatus(429);
-            response.setContentType("application/json");
-            response.setCharacterEncoding("UTF-8");
-            response.getWriter().write(
-                    "{\"message\":\"Too many requests for this action. Please try again later.\"}"
-            );
+            response.setHeader("X-RateLimit-Limit", String.valueOf(matchedRule.getCapacity()));
+            response.setHeader("X-RateLimit-Remaining", String.valueOf(probe.getRemainingTokens()));
+            response.setHeader("X-RateLimit-Reset", String.valueOf(resetSeconds));
+
+            if (probe.isConsumed()) {
+                filterChain.doFilter(request, response);
+            } else {
+                response.setStatus(429);
+                response.setHeader("Retry-After", String.valueOf(resetSeconds));
+                response.setContentType("application/json");
+                response.setCharacterEncoding("UTF-8");
+                response.getWriter().write(
+                        "{\"message\":\"Too many requests for this action. Please try again later.\"}"
+                );
+            }
+        } catch (Exception e) {
+            // Redis çöktüğünde/bağlantı koptuğunda hata loglanır,
+            // ancak API'nin durmaması için isteğe izin verilir (Fail-Open).
+            logger.error("Redis connection failed during rate limit check. Bypassing rate limiter.", e);
         }
     }
 
+    // rediste bucket oluşturur veya redisten bucket getirir.
     private Bucket resolveBucket(String key, RateLimitRule rule) {
         byte[] keyBytes = key.getBytes(StandardCharsets.UTF_8);
 
@@ -72,7 +88,7 @@ public class RateLimitFilter extends OncePerRequestFilter {
         return proxyManager.builder().build(keyBytes, configSupplier);
     }
 
-    // ENPOİNT VE IP kombinasyonu için key üretir.
+    // ENDPOINT VE IP kombinasyonu için key üretir.
     private String buildRateLimitKey(HttpServletRequest request, RateLimitRule rule) {
         String clientIp = extractClientIp(request);
         // key'e path'i de dahil ediyoruz ki aynı IP'nin login ve register hakları birbirine karışmasın
@@ -80,10 +96,12 @@ public class RateLimitFilter extends OncePerRequestFilter {
     }
 
     private String extractClientIp(HttpServletRequest request) {
+        /*
         String forwarded = request.getHeader("X-Forwarded-For");
         if (forwarded != null && !forwarded.isBlank()) {
             return forwarded.split(",")[0].trim();
         }
+         */
         return request.getRemoteAddr();
     }
 

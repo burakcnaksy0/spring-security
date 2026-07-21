@@ -10,7 +10,9 @@ import com.burakcanaksoy.springsecurity.mapper.EmployeeMapper;
 import com.burakcanaksoy.springsecurity.repository.EmployeeRepository;
 import com.burakcanaksoy.springsecurity.security.CustomUserPrincipal;
 import com.burakcanaksoy.springsecurity.util.JwtUtil;
+import io.jsonwebtoken.ExpiredJwtException;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -19,6 +21,7 @@ import org.springframework.stereotype.Service;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class AuthService {
     private final EmployeeRepository repository;
     private final EmployeeMapper mapper;
@@ -126,13 +129,28 @@ public class AuthService {
     }
 
     public String logout(String jwt) {
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        CustomUserPrincipal principal = (CustomUserPrincipal) authentication.getPrincipal();
-        refreshTokenService.deleteEmployeeId(principal.getId());
+        String username;
+        try {
+            username = jwtUtil.extractUsername(jwt);
+        } catch (ExpiredJwtException e) {
+            username = e.getClaims().getSubject();
+        } catch (Exception e) {
+            throw new BadCredentialsException("Invalid token");
+        }
 
-        long remainingValidityExpirationMillis = jwtUtil.getRemainingValidityExpirationMillis(jwt);
-        tokenBlacklistService.blacklistToken(jwt, remainingValidityExpirationMillis);
-        return "Logout successfully with username : " + principal.getUsername();
+        final String finalUsername = username;
+        Employee employee = repository.findByUsername(finalUsername)
+                .orElseThrow(() -> new ResourceNotFoundException("Employee not found with username : " + finalUsername));
+
+        refreshTokenService.deleteEmployeeId(employee.getId());
+
+        try {
+            long remainingValidityExpirationMillis = jwtUtil.getRemainingValidityExpirationMillis(jwt);
+            tokenBlacklistService.blacklistToken(jwt, remainingValidityExpirationMillis);
+        } catch (ExpiredJwtException e) {
+            log.warn("Attempted to blacklist an already expired token: {}", e.getMessage());
+        }
+        return "Logout successfully with username : " + finalUsername;
     }
 
     public String forgotPassword(ForgotPasswordRequest forgotPasswordRequest) {
@@ -281,10 +299,3 @@ public class AuthService {
         }
     }
 }
-
-/*
-Analyze this project thoroughly and ensure that when I run 'docker-compose up -d', the entire system starts up completely.
-The docker-compose configuration should handle starting all necessary services including frontend, backend, database, and any other required components.
-Review the current docker-compose.yml file and the overall project structure to ensure all services are properly defined and can run together seamlessly.
- The system should be fully operational after the docker-compose command executes.
- */

@@ -48,12 +48,13 @@ public class JwtUtil {
         claims.put("email", employee.getEmail());
         claims.put("role", employee.getRole().toString());
         claims.put("employeeId", employee.getId());
+        claims.put(Claims.ID, UUID.randomUUID().toString());
         return createToken(claims, employee.getUsername());
     }
 
     private String createToken(Map<String, Object> claims, String subject) {
         return Jwts.builder()
-                .setId(UUID.randomUUID().toString())
+                //.setId(UUID.randomUUID().toString())
                 .setClaims(claims)
                 .setSubject(subject)
                 .setIssuedAt(new Date(System.currentTimeMillis()))

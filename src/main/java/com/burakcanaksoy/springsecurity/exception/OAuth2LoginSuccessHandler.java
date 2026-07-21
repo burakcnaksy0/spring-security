@@ -44,6 +44,12 @@ public class OAuth2LoginSuccessHandler implements AuthenticationSuccessHandler {
             return;
         }
 
+        Boolean emailVerified = oauth2User.getAttribute("email_verified");
+        if (emailVerified == null || !emailVerified) {
+            response.sendError(HttpServletResponse.SC_BAD_REQUEST, "email_not_verified_by_google");
+            return;
+        }
+
         Employee employee = repository.findByEmail(email)
                 .map(existing -> linkGoogleIfNeeded(existing, providerId))
                 .orElseGet(() -> registerNewOAuthEmployee(email, providerId, name));
@@ -74,12 +80,17 @@ public class OAuth2LoginSuccessHandler implements AuthenticationSuccessHandler {
             existing.setProvider(AuthProvider.GOOGLE);
             changed = true;
         }
+        if (!existing.isEnabled()) {
+            existing.setEnabled(true);
+            changed = true;
+        }
 
         if (changed) {
             repository.save(existing);
         }
         return existing;
     }
+
     private Employee registerNewOAuthEmployee(String email, String providerId, String name) {
         Employee employee = Employee.builder()
                 .email(email)

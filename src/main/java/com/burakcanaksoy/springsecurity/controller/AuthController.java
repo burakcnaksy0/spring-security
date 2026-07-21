@@ -1,5 +1,6 @@
 package com.burakcanaksoy.springsecurity.controller;
 
+import com.burakcanaksoy.springsecurity.annotation.Password;
 import com.burakcanaksoy.springsecurity.dto.request.*;
 import com.burakcanaksoy.springsecurity.dto.response.*;
 import com.burakcanaksoy.springsecurity.service.AuthService;
@@ -8,11 +9,13 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/api/v1/auth")
 @RequiredArgsConstructor
+@Validated
 public class AuthController {
 
     private final AuthService authService;
@@ -84,7 +87,7 @@ public class AuthController {
     }
 
     @PostMapping("/set-password")
-    public ResponseEntity<String> setPassword(Authentication authentication, @RequestParam String newPassword) {
+    public ResponseEntity<String> setPassword(Authentication authentication, @RequestParam @Password String newPassword) {
         return ResponseEntity.ok(authService.setPasswordForOAuthUser(authentication.getName(), newPassword));
     }
 }

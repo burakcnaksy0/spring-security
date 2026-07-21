@@ -18,7 +18,7 @@ public class PasswordResetToken {
     private Long id;
 
     @Column(nullable = false, unique = true)
-    private String token;
+    private String hashedToken;
 
     @OneToOne
     @JoinColumn(name = "employee_id", nullable = false)

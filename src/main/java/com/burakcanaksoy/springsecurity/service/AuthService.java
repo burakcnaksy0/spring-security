@@ -15,12 +15,16 @@ import com.burakcanaksoy.springsecurity.mapper.EmployeeMapper;
 import com.burakcanaksoy.springsecurity.repository.EmployeeRepository;
 import com.burakcanaksoy.springsecurity.security.CustomUserPrincipal;
 import com.burakcanaksoy.springsecurity.util.JwtUtil;
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+
+import java.time.Instant;
+import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
@@ -122,23 +126,28 @@ public class AuthService {
     }
 
     public String forgotPassword(ForgotPasswordRequest forgotPasswordRequest) {
-        Employee employee = repository.findByEmail(forgotPasswordRequest.getEmail()).orElseThrow(() ->
-                new ResourceNotFoundException("If this email address is registered, a password reset email has been sent."));
-
-        PasswordResetToken passwordResetToken = passwordResetTokenService.createPasswordResetToken(employee);
-        emailService.sendPasswordReset(employee, passwordResetToken);
-        return "A password reset request was sent to this email address : " + forgotPasswordRequest.getEmail();
-
+        Optional<Employee> employeeOptional = repository.findByEmail(forgotPasswordRequest.getEmail());
+        if (employeeOptional.isPresent()) {
+            Employee employee = employeeOptional.get();
+            String passwordResetToken = passwordResetTokenService.createPasswordResetToken(employee);
+            emailService.sendPasswordReset(employee, passwordResetToken);
+        }
+        return "If this email address is registered, a password reset email has been sent.";
     }
 
+    @Transactional
     public String resetPassword(String token, ResetPasswordRequest resetPasswordRequest) {
-        PasswordResetToken passwordResetToken = passwordResetTokenService.getByToken(token);
-        passwordResetTokenService.verifyPasswordResetToken(passwordResetToken.getToken());
+        PasswordResetToken passwordResetToken = passwordResetTokenService.getByRawToken(token);
+
+        if (passwordResetToken.getExpiryDate().isBefore(Instant.now())){
+            passwordResetTokenService.deleteToken(passwordResetToken);
+            throw new RuntimeException("Password reset token has expired. Please request again.");
+        }
         Employee employee = passwordResetToken.getEmployee();
         employee.setPasswordHash(passwordEncoder.encode(resetPasswordRequest.getNewPassword()));
         repository.save(employee);
         passwordResetTokenService.deleteToken(passwordResetToken);
-        return "Your password has been reset. Your new password is : " + resetPasswordRequest.getNewPassword();
+        return "Your password has been reset successfully.";
     }
 
     private void checkIfEmailExists(String email) {

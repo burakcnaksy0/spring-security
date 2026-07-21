@@ -28,9 +28,9 @@ public class EmailService {
         mailSender.send(mailMessage);
     }
 
-    public void sendPasswordReset(Employee employee, PasswordResetToken passwordResetToken) {
+    public void sendPasswordReset(Employee employee, String passwordResetToken) {
         String subject = "Password Reset";
-        String passwordResetUrl = "http://localhost:9094/api/v1/auth/reset-password?token=" + passwordResetToken.getToken();
+        String passwordResetUrl = "http://localhost:9094/api/v1/auth/reset-password?token=" + passwordResetToken;
         String message = "Dear " + employee.getUsername() + ",\n\n"
                 + "Please click the link below to reset your password:\n"
                 + passwordResetUrl + "\n"

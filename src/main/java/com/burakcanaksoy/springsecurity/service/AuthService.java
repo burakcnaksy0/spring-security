@@ -66,18 +66,38 @@ public class AuthService {
 
         matchPassword(loginRequest.getPassword(), employee.getPasswordHash());
 
+        OtpToken otpToken = otpTokenService.createOtpToken(employee);
+        emailService.sendOtpEmail(employee, otpToken.getOtpCode());
+
+        String preAuthToken = jwtUtil.createPreAuthToken(employee);
+/*
+
         String accessToken = jwtUtil.generateToken(employee);
         RefreshToken refreshToken = refreshTokenService.createRefreshToken(employee.getUsername());
 
+ */
+        return LoginResponse.builder()
+                .accessToken(preAuthToken)
+                .username(employee.getUsername())
+                .message("MFA_REQUIRED")
+                .build();
+    }
+
+    public LoginResponse verifyOtp(String username , String code) {
+        Employee employee = repository.findByUsername(username).orElseThrow(() ->
+                new ResourceNotFoundException("Employee not found with this username : " + username));
+
+        otpTokenService.verifyOtp(employee, code);
+
+        String accessToken = jwtUtil.generateToken(employee);
+        RefreshToken refreshToken = refreshTokenService.createRefreshToken(employee.getUsername());
         return LoginResponse.builder()
                 .accessToken(accessToken)
                 .refreshToken(refreshToken.getToken())
                 .username(employee.getUsername())
-                .message("Login successfully")
+                .message("Login success")
                 .build();
     }
-
-
     /*
     public LoginResponse login(EmployeeLoginRequest loginRequest) {
         Authentication authenticate = authenticationManager.authenticate(
@@ -170,6 +190,7 @@ public class AuthService {
         }
     }
 
+    /*
     public OtpResponse sendOtp(EmailOtpRequest request) {
         Employee employee = repository.findByUsername(request.getUsername()).orElseThrow(() ->
                 new ResourceNotFoundException("Employee not found with this username : " + request.getUsername()));
@@ -185,25 +206,8 @@ public class AuthService {
                 .build();
 
     }
+     */
 
-    public LoginResponse verifyOtp(VerifyOtpRequest request) {
-        Employee employee = repository.findByUsername(request.getUsername()).orElseThrow(() ->
-                new ResourceNotFoundException("Employee not found with this username : " + request.getUsername()));
-        otpTokenService.verifyOtp(employee, request.getOtpCode());
-        String accessToken = jwtUtil.generateToken(employee);
-        RefreshToken refreshToken = refreshTokenService.createRefreshToken(request.getUsername());
-        return LoginResponse.builder()
-                .accessToken(accessToken)
-                .refreshToken(refreshToken.getToken())
-                .username(request.getUsername())
-                .message("Login success")
-                .build();
-    }
+
 }
 
-/*
-Analyze this project thoroughly and ensure that when I run 'docker-compose up -d', the entire system starts up completely.
-The docker-compose configuration should handle starting all necessary services including frontend, backend, database, and any other required components.
-Review the current docker-compose.yml file and the overall project structure to ensure all services are properly defined and can run together seamlessly.
- The system should be fully operational after the docker-compose command executes.
- */

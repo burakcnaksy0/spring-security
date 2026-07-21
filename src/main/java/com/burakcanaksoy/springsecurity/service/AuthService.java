@@ -17,6 +17,12 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import java.security.SecureRandom;
+import java.time.LocalDateTime;
+import java.util.*;
+import java.util.stream.Collectors;
+import java.util.stream.IntStream;
+
 @Service
 @RequiredArgsConstructor
 public class AuthService {
@@ -207,13 +213,59 @@ public class AuthService {
                 .build();
     }
 
+    public List<String> generateAndSaveRecoveryCodes(Employee employee) {
+        SecureRandom secureRandom = new SecureRandom();
+        // 8 haneli rastgele sayısal kodlar
+        List<String> plainCodes = IntStream.range(0, 8)
+                .mapToObj(i -> String.format("%08d", secureRandom.nextInt(100000000)))
+                .collect(Collectors.toList());
+        //rastgele üretilen kodları hashleyip db ye kaydeder
+        List<RecoveryCode> recoveryCodes = plainCodes.stream()
+                .map(code -> RecoveryCode.builder()
+                        .dbHashedRecoveryCode(passwordEncoder.encode(code))
+                        .employee(employee)
+                        .used(false)
+                        .createdAt(LocalDateTime.now())
+                        .build())
+                .collect(Collectors.toList());
+        employee.getRecoveryCodes().clear();
+        employee.getRecoveryCodes().addAll(recoveryCodes);
+        repository.save(employee);
+        // sadece kurulum anında kullanıcıya 1 kere gösterilmek üzere düz metin döner.
+        return plainCodes;
+    }
+
+    public LoginResponse verifyRecoveryCode(String username, String recoveryCode) {
+        Employee employee = repository.findByUsername(username)
+                .orElseThrow(() -> new ResourceNotFoundException("Employee not found"));
+        RecoveryCode matchedRecoveryCode = null;
+        for (RecoveryCode dbHashedRecoverCode : employee.getRecoveryCodes()) {
+            if (!dbHashedRecoverCode.isUsed() && passwordEncoder.matches(recoveryCode, dbHashedRecoverCode.getDbHashedRecoveryCode())) {
+                matchedRecoveryCode = dbHashedRecoverCode;
+                break;
+            }
+        }
+        if (matchedRecoveryCode == null) {
+            throw new BadCredentialsException("Recovery code is invalid");
+        }
+        employee.getRecoveryCodes().remove(matchedRecoveryCode);
+        repository.save(employee);
+        String accessToken = jwtUtil.generateToken(employee);
+        RefreshToken refreshToken = refreshTokenService.createRefreshToken(username);
+        return LoginResponse.builder()
+                .accessToken(accessToken)
+                .refreshToken(refreshToken.getToken())
+                .username(username)
+                .message("Login successfully with recovery code")
+                .build();
+    }
+
     public TotpSetupResponse setupTotp(String username) {
         Employee employee = repository.findByUsername(username)
                 .orElseThrow(() -> new ResourceNotFoundException("Employee not found"));
 
         String secret = totpService.generateSecret();
-        employee.setTotpSecret(secret);
-        employee.setMfaEnabled(false);
+        employee.setTempTotpSecret(secret);
         repository.save(employee);
 
         String qrImage = totpService.generateQrCodeImage(secret, employee.getUsername());
@@ -223,16 +275,27 @@ public class AuthService {
                 .build();
     }
 
-    public String enableTotp(String username, String code) {
+    public MfaEnableResponse enableTotp(String username, String code) {
         Employee employee = repository.findByUsername(username)
                 .orElseThrow(() -> new ResourceNotFoundException("Employee not found"));
 
-        if (!totpService.verifyCode(employee.getTotpSecret(), code)) {
+        String secretToVerify = employee.getTempTotpSecret() != null ?
+                employee.getTempTotpSecret() : employee.getTotpSecret();
+
+        if (secretToVerify == null || !totpService.verifyCode(employee.getTotpSecret(), code)) {
             throw new BadCredentialsException("Invalid TOTP code");
         }
+        employee.setTotpSecret(secretToVerify);
+        employee.setTempTotpSecret(null);
         employee.setMfaEnabled(true);
+
         repository.save(employee);
-        return "TOTP 2FA enabled successfully";
+        String message = "TOTP 2FA enabled successfully";
+        List<String> recoveryCodes = generateAndSaveRecoveryCodes(employee);
+        return MfaEnableResponse.builder()
+                .message(message)
+                .recoveryCodes(recoveryCodes)
+                .build();
     }
 
     public LoginResponse verifyTotpLogin(String username, String code) {

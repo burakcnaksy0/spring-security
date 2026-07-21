@@ -4,6 +4,7 @@ package com.burakcanaksoy.springsecurity.entity;
 import jakarta.persistence.*;
 import lombok.*;
 
+import java.util.*;
 import java.time.LocalDate;
 
 @Entity
@@ -36,7 +37,13 @@ public class Employee {
      */
     @Column
     private String totpSecret;
+    @Column(name = "temp_totp_secret")
+    private String tempTotpSecret;
     @Column(nullable = false)
     private boolean mfaEnabled = false;
+
+    @OneToMany(mappedBy = "employee", cascade = CascadeType.ALL, orphanRemoval = true)
+    @Builder.Default
+    private List<RecoveryCode> recoveryCodes = new ArrayList<>();
 
 }

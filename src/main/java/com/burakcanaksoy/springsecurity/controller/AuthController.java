@@ -17,7 +17,6 @@ public class AuthController {
 
     private final AuthService authService;
 
-
     @PostMapping("/register")
     public ResponseEntity<AuthResponse> register(@Valid @RequestBody EmployeeRegisterRequest registerRequest) {
         return ResponseEntity.status(HttpStatus.CREATED).body(authService.register(registerRequest));
@@ -39,18 +38,18 @@ public class AuthController {
     }
 
     @GetMapping("/verify")
-    public ResponseEntity<String> verifyEmail(@RequestParam String token){
+    public ResponseEntity<String> verifyEmail(@RequestParam String token) {
         return ResponseEntity.ok(authService.verifyEmail(token));
     }
 
     @PostMapping("/forgot-password")
-    public ResponseEntity<String> forgotPassword(@Valid @RequestBody ForgotPasswordRequest forgotPasswordRequest){
+    public ResponseEntity<String> forgotPassword(@Valid @RequestBody ForgotPasswordRequest forgotPasswordRequest) {
         return ResponseEntity.ok(authService.forgotPassword(forgotPasswordRequest));
     }
 
     @PostMapping("/reset-password")
-    public ResponseEntity<String> resetPassword(@RequestParam String token , @Valid @RequestBody ResetPasswordRequest resetPasswordRequest){
-        return ResponseEntity.ok().body(authService.resetPassword(token,resetPasswordRequest));
+    public ResponseEntity<String> resetPassword(@RequestParam String token, @Valid @RequestBody ResetPasswordRequest resetPasswordRequest) {
+        return ResponseEntity.ok().body(authService.resetPassword(token, resetPasswordRequest));
     }
 
     @PostMapping("/send-otp")
@@ -63,18 +62,13 @@ public class AuthController {
         return ResponseEntity.ok(authService.verifyOtp(request));
     }
 
-    @PostMapping("/totp/setup")
-    public ResponseEntity<TotpSetupResponse> setupTotp(Authentication authentication) {
-        return ResponseEntity.ok(authService.setupTotp(authentication.getName()));
-    }
-
-    @PostMapping("/totp/enable")
-    public ResponseEntity<String> enableTotp(Authentication authentication, @RequestParam String code) {
-        return ResponseEntity.ok(authService.enableTotp(authentication.getName(), code));
-    }
-
     @PostMapping("/totp/verify-login")
-    public ResponseEntity<LoginResponse> verifyTotpLogin(Authentication authentication , @RequestParam String code) {
+    public ResponseEntity<LoginResponse> verifyTotpLogin(Authentication authentication, @RequestParam String code) {
         return ResponseEntity.ok(authService.verifyTotpLogin(authentication.getName(), code));
+    }
+
+    @PostMapping("/totp/verify-recovery")
+    public ResponseEntity<LoginResponse> verifyRecoveryCode(Authentication authentication, @RequestParam String code) {
+        return ResponseEntity.ok(authService.verifyRecoveryCode(authentication.getName(), code));
     }
 }

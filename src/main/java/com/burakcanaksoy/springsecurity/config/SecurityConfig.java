@@ -33,7 +33,9 @@ public class SecurityConfig {
                 .csrf(csrf -> csrf.disable())
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/api/v1/auth/totp/verify-login").hasRole("PRE_AUTH")
+                        .requestMatchers("/api/v1/auth/totp/verify-recovery").hasRole("PRE_AUTH")
                         .requestMatchers("/api/v1/auth/**").permitAll()
+                        .requestMatchers("/api/v1/mfa/**").authenticated()
                         .requestMatchers(
                                 "/swagger-ui/**",
                                 "/swagger-ui.html",

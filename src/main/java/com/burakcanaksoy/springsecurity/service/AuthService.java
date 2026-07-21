@@ -62,8 +62,7 @@ public class AuthService {
     }
 
     public LoginResponse login(EmployeeLoginRequest loginRequest) {
-        Employee employee = repository.findByUsername(loginRequest.getUsername()).orElseThrow(() -> new ResourceNotFoundException("Employee not found with this username : " + loginRequest.getUsername()));
-
+        Employee employee = getEmployeeByUsername(loginRequest.getUsername());
         if (!employee.isEnabled()) {
             throw new EmailNotVerifiedException("Email not verified. Please check your email.");
         }
@@ -153,39 +152,8 @@ public class AuthService {
         return "Your password has been reset. Your new password is : " + resetPasswordRequest.getNewPassword();
     }
 
-    private void checkIfEmailExists(String email) {
-        if (repository.existsByEmail(email)) {
-            throw new AlreadyExistsException("Email already exists.");
-        }
-    }
-
-    private void checkIfUsernameExists(String username) {
-        if (repository.existsByUsername(username)) {
-            throw new AlreadyExistsException("Username already exists.");
-        }
-    }
-
-    private void checkIfPhoneExists(String phone) {
-        if (repository.existsByPhoneNumber(phone)) {
-            throw new AlreadyExistsException("Phone number already exists.");
-        }
-    }
-
-    private void checkIfTcExists(String tcno) {
-        if (repository.existsByTcNo(tcno)) {
-            throw new AlreadyExistsException("TC number already exists.");
-        }
-    }
-
-    private void matchPassword(String loginPassword, String dbPasswordHashed) {
-        if (!passwordEncoder.matches(loginPassword, dbPasswordHashed)) {
-            throw new BadCredentialsException("Invalid username or password");
-        }
-    }
-
     public OtpResponse sendOtp(EmailOtpRequest request) {
-        Employee employee = repository.findByUsername(request.getUsername()).orElseThrow(() ->
-                new ResourceNotFoundException("Employee not found with this username : " + request.getUsername()));
+        Employee employee = getEmployeeByUsername(request.getUsername());
         if (!employee.isEnabled()) {
             throw new EmailNotVerifiedException("Email not verified.");
         }
@@ -200,8 +168,7 @@ public class AuthService {
     }
 
     public LoginResponse verifyOtp(VerifyOtpRequest request) {
-        Employee employee = repository.findByUsername(request.getUsername()).orElseThrow(() ->
-                new ResourceNotFoundException("Employee not found with this username : " + request.getUsername()));
+        Employee employee = getEmployeeByUsername(request.getUsername());
         otpTokenService.verifyOtp(employee, request.getOtpCode());
         String accessToken = jwtUtil.generateToken(employee);
         RefreshToken refreshToken = refreshTokenService.createRefreshToken(request.getUsername());
@@ -236,8 +203,7 @@ public class AuthService {
     }
 
     public LoginResponse verifyRecoveryCode(String username, String recoveryCode) {
-        Employee employee = repository.findByUsername(username)
-                .orElseThrow(() -> new ResourceNotFoundException("Employee not found"));
+        Employee employee = getEmployeeByUsername(username);
         RecoveryCode matchedRecoveryCode = null;
         for (RecoveryCode dbHashedRecoverCode : employee.getRecoveryCodes()) {
             if (!dbHashedRecoverCode.isUsed() && passwordEncoder.matches(recoveryCode, dbHashedRecoverCode.getDbHashedRecoveryCode())) {
@@ -261,9 +227,7 @@ public class AuthService {
     }
 
     public TotpSetupResponse setupTotp(String username) {
-        Employee employee = repository.findByUsername(username)
-                .orElseThrow(() -> new ResourceNotFoundException("Employee not found"));
-
+        Employee employee = getEmployeeByUsername(username);
         String secret = totpService.generateSecret();
         employee.setTempTotpSecret(secret);
         repository.save(employee);
@@ -276,8 +240,7 @@ public class AuthService {
     }
 
     public MfaEnableResponse enableTotp(String username, String code) {
-        Employee employee = repository.findByUsername(username)
-                .orElseThrow(() -> new ResourceNotFoundException("Employee not found"));
+        Employee employee = getEmployeeByUsername(username);
 
         String secretToVerify = employee.getTempTotpSecret() != null ?
                 employee.getTempTotpSecret() : employee.getTotpSecret();
@@ -299,9 +262,7 @@ public class AuthService {
     }
 
     public LoginResponse verifyTotpLogin(String username, String code) {
-        Employee employee = repository.findByUsername(username)
-                .orElseThrow(() -> new ResourceNotFoundException("Employee not found"));
-
+        Employee employee = getEmployeeByUsername(username);
         if (!totpService.verifyCode(employee.getTotpSecret(), code)) {
             throw new BadCredentialsException("Invalid TOTP code");
         }
@@ -315,11 +276,39 @@ public class AuthService {
                 .message("Login successfully")
                 .build();
     }
-}
 
-/*
-Analyze this project thoroughly and ensure that when I run 'docker-compose up -d', the entire system starts up completely.
-The docker-compose configuration should handle starting all necessary services including frontend, backend, database, and any other required components.
-Review the current docker-compose.yml file and the overall project structure to ensure all services are properly defined and can run together seamlessly.
- The system should be fully operational after the docker-compose command executes.
- */
+    private Employee getEmployeeByUsername(String username) {
+        return repository.findByUsername(username)
+                .orElseThrow(() -> new ResourceNotFoundException("Employee not found"));
+    }
+
+    private void checkIfEmailExists(String email) {
+        if (repository.existsByEmail(email)) {
+            throw new AlreadyExistsException("Email already exists.");
+        }
+    }
+
+    private void checkIfUsernameExists(String username) {
+        if (repository.existsByUsername(username)) {
+            throw new AlreadyExistsException("Username already exists.");
+        }
+    }
+
+    private void checkIfPhoneExists(String phone) {
+        if (repository.existsByPhoneNumber(phone)) {
+            throw new AlreadyExistsException("Phone number already exists.");
+        }
+    }
+
+    private void checkIfTcExists(String tcNo) {
+        if (repository.existsByTcNo(tcNo)) {
+            throw new AlreadyExistsException("TC number already exists.");
+        }
+    }
+
+    private void matchPassword(String loginPassword, String dbPasswordHashed) {
+        if (!passwordEncoder.matches(loginPassword, dbPasswordHashed)) {
+            throw new BadCredentialsException("Invalid username or password");
+        }
+    }
+}

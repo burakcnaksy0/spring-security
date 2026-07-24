@@ -19,13 +19,13 @@ public class EmployeeController {
     private final EmployeeService employeeService;
 
     @GetMapping("/all")
-    @PreAuthorize("hasRole('ADMIN')")
+    //@PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<List<EmployeeResponse>> getAllEmployees() {
         return ResponseEntity.ok().body(employeeService.getAllEmployees());
     }
 
     @DeleteMapping("/{id}")
-    @PreAuthorize("hasRole('ADMIN')")
+    //@PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<Void> deleteEmployee(@PathVariable Long id)
     {
         employeeService.deleteEmployee(id);

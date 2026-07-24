@@ -19,6 +19,9 @@ import java.util.List;
 public class EmployeeService {
     private final EmployeeRepository repository;
     private final EmployeeMapper mapper;
+    private final com.burakcanaksoy.springsecurity.repository.VerificationTokenRepository verificationTokenRepository;
+    private final com.burakcanaksoy.springsecurity.repository.RefreshTokenRepository refreshTokenRepository;
+    private final com.burakcanaksoy.springsecurity.repository.PasswordResetTokenRepository passwordResetTokenRepository;
 
     public List<EmployeeResponse> getAllEmployees() {
         List<Employee> employeeList = repository.findAll();
@@ -39,8 +42,12 @@ public class EmployeeService {
 
     }
 
+    @jakarta.transaction.Transactional
     public void deleteEmployee(Long id) {
         Employee employee = getById(id);
+        verificationTokenRepository.deleteByEmployeeId(id);
+        refreshTokenRepository.deleteByEmployeeId(id);
+        passwordResetTokenRepository.deleteByEmployeeId(id);
         repository.delete(employee);
     }
 

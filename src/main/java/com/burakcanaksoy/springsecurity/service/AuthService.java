@@ -14,13 +14,19 @@ import com.burakcanaksoy.springsecurity.exception.ResourceNotFoundException;
 import com.burakcanaksoy.springsecurity.mapper.EmployeeMapper;
 import com.burakcanaksoy.springsecurity.repository.EmployeeRepository;
 import com.burakcanaksoy.springsecurity.security.CustomUserPrincipal;
+import com.burakcanaksoy.springsecurity.util.CookieUtil;
 import com.burakcanaksoy.springsecurity.util.JwtUtil;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.security.web.csrf.CookieCsrfTokenRepository;
+import org.springframework.security.web.csrf.CsrfToken;
+import org.springframework.security.web.csrf.CsrfTokenRepository;
 import org.springframework.stereotype.Service;
 
 import java.time.Instant;
@@ -37,6 +43,7 @@ public class AuthService {
     private final VerificationTokenService verificationTokenService;
     private final PasswordResetTokenService passwordResetTokenService;
     private final EmailService emailService;
+    private final CookieUtil cookieUtil;
     //private final AuthenticationManager authenticationManager;
 
     public AuthResponse register(EmployeeRegisterRequest registerRequest) {
@@ -62,7 +69,7 @@ public class AuthService {
         return "Email successfully verified";
     }
 
-    public LoginResponse login(EmployeeLoginRequest loginRequest) {
+    public LoginResponse login(EmployeeLoginRequest loginRequest, HttpServletRequest request, HttpServletResponse response) {
         Employee employee = repository.findByUsername(loginRequest.getUsername()).orElseThrow(() -> new ResourceNotFoundException("Employee not found with this username : " + loginRequest.getUsername()));
 
         if (!employee.isEnabled()) {
@@ -74,9 +81,17 @@ public class AuthService {
         String accessToken = jwtUtil.generateToken(employee);
         RefreshToken refreshToken = refreshTokenService.createRefreshToken(employee.getUsername());
 
+        cookieUtil.addAccessTokenCookie(response, accessToken, 15 * 60);
+        cookieUtil.addRefreshTokenCookie(response, refreshToken.getToken(), 7 * 24 * 60);
+
+        //  POST, PUT, PATCH, DELETE
+        // Spring Security CSRF kontrolünü SADECE bu metotlarda zorunlu kılar.
+        // CSRF saldırısı için XSRF-TOKEN cookie üretir.
+        CsrfTokenRepository csrfTokenRepository = CookieCsrfTokenRepository.withHttpOnlyFalse();
+        CsrfToken csrfToken = csrfTokenRepository.generateToken(request);
+        csrfTokenRepository.saveToken(csrfToken, request, response);
+
         return LoginResponse.builder()
-                .accessToken(accessToken)
-                .refreshToken(refreshToken.getToken())
                 .username(employee.getUsername())
                 .message("Login successfully")
                 .build();
@@ -102,26 +117,32 @@ public class AuthService {
     }
      */
 
-    public RefreshTokenResponse refreshToken(RefreshTokenRequest refreshTokenRequest) {
-        String refreshToken = refreshTokenRequest.getRefreshToken();
-        return refreshTokenService.findByToken(refreshToken)
+    public RefreshTokenResponse refreshToken(HttpServletRequest request, HttpServletResponse response) {
+        String refreshTokenValue = cookieUtil.extractTokenFromCookie(request, CookieUtil.REFRESH_TOKEN_COOKIE);
+        if (refreshTokenValue == null) {
+            throw new RuntimeException("Refresh token not found");
+        }
+        return refreshTokenService.findByToken(refreshTokenValue)
                 .map(refreshTokenService::verifyRefreshToken)
                 .map(RefreshToken::getEmployee)
                 .map(employee -> {
                     String accessToken = jwtUtil.generateToken(employee);
                     RefreshToken newRefreshToken = refreshTokenService.createRefreshToken(employee.getUsername());
+
+                    cookieUtil.addAccessTokenCookie(response, accessToken, 15 * 60);
+                    cookieUtil.addRefreshTokenCookie(response, newRefreshToken.getToken(), 7 * 24 * 60);
+
                     return RefreshTokenResponse.builder()
-                            .accessToken(accessToken)
-                            .refreshToken(newRefreshToken.toString())
                             .message("Refresh successful")
                             .build();
                 }).orElseThrow(() -> new RuntimeException("Invalid refresh token"));
     }
 
-    public String logout() {
+    public String logout(HttpServletResponse response) {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         CustomUserPrincipal principal = (CustomUserPrincipal) authentication.getPrincipal();
         refreshTokenService.deleteEmployeeId(principal.getId());
+        cookieUtil.clearAuthCookies(response);
         return "Logout successfully with username : " + principal.getUsername();
     }
 
@@ -139,7 +160,7 @@ public class AuthService {
     public String resetPassword(String token, ResetPasswordRequest resetPasswordRequest) {
         PasswordResetToken passwordResetToken = passwordResetTokenService.getByRawToken(token);
 
-        if (passwordResetToken.getExpiryDate().isBefore(Instant.now())){
+        if (passwordResetToken.getExpiryDate().isBefore(Instant.now())) {
             passwordResetTokenService.deleteToken(passwordResetToken);
             throw new RuntimeException("Password reset token has expired. Please request again.");
         }

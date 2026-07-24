@@ -1,5 +1,6 @@
 package com.burakcanaksoy.springsecurity.filter;
 
+import com.burakcanaksoy.springsecurity.util.CookieUtil;
 import com.burakcanaksoy.springsecurity.util.JwtUtil;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
@@ -20,10 +21,12 @@ import java.io.IOException;
 @RequiredArgsConstructor
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
     private final JwtUtil jwtUtil;
+    private final CookieUtil cookieUtil;
     private final UserDetailsService userDetailsService;
 
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
+        /*
         final String authHeader = request.getHeader("Authorization");
         final String jwt;
         final String username;
@@ -32,10 +35,23 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             filterChain.doFilter(request, response);
             return;
         }
+         */
 
-        jwt = authHeader.substring(7);
+        String jwt = cookieUtil.extractTokenFromCookie(request, CookieUtil.ACCESS_TOKEN_COOKIE);
+
+        if (jwt == null) {
+            String authHeader = request.getHeader("Authorization");
+            if (authHeader != null && !authHeader.startsWith("Bearer ")) {
+                jwt = authHeader.substring(7);
+            }
+        }
+
+        if (jwt == null) {
+            filterChain.doFilter(request, response);
+        }
+
         try {
-            username = jwtUtil.extractUsername(jwt);
+            String username = jwtUtil.extractUsername(jwt);
             // burdan sonrası performans&güvenlik ilişkisini belirler.
             if (username != null && SecurityContextHolder.getContext().getAuthentication() == null) {
                 // burada bi kere daha db ye istek atılır. db içindeki güncel bilgiler alınır.
@@ -43,16 +59,12 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                 // UsernamePasswordAuthenticationToken'nın parametre alanına ekleriz. böylece performans artarken güvenlik açığı veririz.(db den güncel bilgiler çekilmedi.)
                 UserDetails userDetails = this.userDetailsService.loadUserByUsername(username);
                 if (jwtUtil.validateToken(jwt, userDetails.getUsername())) {
-                    UsernamePasswordAuthenticationToken authenticationToken = new UsernamePasswordAuthenticationToken(
-                            userDetails,
-                            null,
-                            userDetails.getAuthorities()
-                    );
+                    UsernamePasswordAuthenticationToken authenticationToken = new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());
                     authenticationToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
                     SecurityContextHolder.getContext().setAuthentication(authenticationToken);
                 }
             }
-        }catch (Exception e) {
+        } catch (Exception e) {
             logger.error("JWT validation failed: " + e.getMessage());
         }
         filterChain.doFilter(request, response);

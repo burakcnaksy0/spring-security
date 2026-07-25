@@ -28,9 +28,19 @@ public class JwtUtil {
     // burda ekstra bilgiler eklemek perfomansı artırır ama güvenliği azaltabilir!
     public String generateToken(Employee employee) {
         Map<String, Object> claims = new HashMap<>();
+        java.util.Set<String> roles = employee.getRoles().stream()
+                .map(com.burakcanaksoy.springsecurity.entity.Role::getName)
+                .collect(java.util.stream.Collectors.toSet());
+
+        java.util.Set<String> permissions = employee.getRoles().stream()
+                .flatMap(role -> role.getPermissions().stream())
+                .map(com.burakcanaksoy.springsecurity.entity.Permission::getName)
+                .collect(java.util.stream.Collectors.toSet());
+
         claims.put("email", employee.getEmail());
-        claims.put("role", employee.getRole().toString());
-        claims.put("employeeId",employee.getId());
+        claims.put("roles", roles);
+        claims.put("permissions", permissions);
+        claims.put("employeeId", employee.getId());
         return createToken(claims, employee.getUsername());
     }
 

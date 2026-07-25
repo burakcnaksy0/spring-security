@@ -1,11 +1,11 @@
 package com.burakcanaksoy.springsecurity.entity;
 
 
-import com.burakcanaksoy.springsecurity.entity.enums.Role;
 import jakarta.persistence.*;
 import lombok.*;
 
 import java.time.LocalDate;
+import java.util.*;
 
 @Entity
 @Table(name = "employee")
@@ -29,10 +29,15 @@ public class Employee {
     private String email;
     private String address;
     private boolean enabled;
-    @Enumerated(EnumType.STRING)
-    private Role role;
-
     @Builder.Default
     @Column(name = "mfa_enabled", nullable = false)
     private boolean mfaEnabled = false;
+    @Builder.Default
+    @ManyToMany(fetch = FetchType.EAGER)
+    @JoinTable(
+            name = "employee_roles",
+            joinColumns = @JoinColumn(name = "employee_id"),
+            inverseJoinColumns = @JoinColumn(name = "role_id")
+    )
+    private Set<Role> roles = new HashSet<>();
 }

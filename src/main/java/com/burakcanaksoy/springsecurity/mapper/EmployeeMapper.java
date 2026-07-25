@@ -5,7 +5,8 @@ import com.burakcanaksoy.springsecurity.dto.request.EmployeeRegisterRequest;
 import com.burakcanaksoy.springsecurity.dto.response.AuthResponse;
 import com.burakcanaksoy.springsecurity.dto.response.EmployeeResponse;
 import com.burakcanaksoy.springsecurity.entity.Employee;
-import com.burakcanaksoy.springsecurity.entity.enums.Role;
+import com.burakcanaksoy.springsecurity.entity.Permission;
+import com.burakcanaksoy.springsecurity.entity.Role;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
@@ -21,7 +22,7 @@ import org.springframework.stereotype.Component;
 public class EmployeeMapper {
     private final PasswordEncoder passwordEncoder;
 
-    public Employee toEmployee(EmployeeRegisterRequest request) {
+    public Employee toEmployee(EmployeeRegisterRequest request, Set<Role> defaultRoles) {
         if (request == null) {
             return null;
         }
@@ -31,7 +32,7 @@ public class EmployeeMapper {
                 .tcNo(request.getTcNo())
                 .phoneNumber(request.getPhoneNumber())
                 .email(request.getEmail())
-                .role(Role.USER)
+                .roles(defaultRoles)
                 .enabled(false)
                 .build();
     }
@@ -41,6 +42,8 @@ public class EmployeeMapper {
         if (employee == null || request == null) {
             return null;
         }
+
+
         employee.setUsername(request.getUsername());
         employee.setFirstName(request.getFirstName());
         employee.setLastName(request.getLastName());
@@ -58,9 +61,14 @@ public class EmployeeMapper {
         if (employee == null) {
             return null;
         }
+
+        Set<String> roleNames = employee.getRoles().stream()
+                .map(Role::getName)
+                .collect(Collectors.toSet());
+
         return AuthResponse.builder()
                 .username(employee.getUsername())
-                .role(employee.getRole().toString())
+                .roles(roleNames)
                 .email(employee.getEmail())
                 .phone(employee.getPhoneNumber())
                 .tc(employee.getTcNo())
@@ -72,6 +80,16 @@ public class EmployeeMapper {
         if (employee == null) {
             return null;
         }
+
+        Set<String> roleNames = employee.getRoles().stream()
+                .map(Role::getName)
+                .collect(Collectors.toSet());
+
+        Set<String> permissionNames = employee.getRoles().stream()
+                .flatMap(role -> role.getPermissions().stream())
+                .map(Permission::getName)
+                .collect(Collectors.toSet());
+
         return EmployeeResponse.builder()
                 .id(employee.getId())
                 .username(employee.getUsername())
@@ -84,7 +102,8 @@ public class EmployeeMapper {
                 .email(employee.getEmail())
                 .address(employee.getAddress())
                 .enabled(employee.isEnabled())
-                .role(employee.getRole().name())
+                .roles(roleNames)
+                .permissions(permissionNames)
                 .build();
     }
 

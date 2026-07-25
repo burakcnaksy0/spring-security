@@ -7,6 +7,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.time.LocalDate;
+import java.util.Set;
 
 @AllArgsConstructor
 @NoArgsConstructor
@@ -24,7 +25,8 @@ public class EmployeeResponse {
     private String email;
     private String address;
     private boolean enabled;
-    private String role;
+    private Set<String> roles;
+    private Set<String> permissions;
 
 }
 

@@ -40,7 +40,7 @@ public class LeaveRequestController {
         return ResponseEntity.ok(leaveRequestService.findAll());
     }
 
-    @PreAuthorize("hasPermission(#id, 'LeaveRequest', 'APPROVE')")
+    @PreAuthorize("hasAuthority('LEAVE_APPROVE')")
     @PostMapping("/{id}/approve")
     public ResponseEntity<LeaveRequestResponse> approve(@PathVariable Long id) {
         return ResponseEntity.ok(leaveRequestService.approve(id));

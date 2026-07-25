@@ -1,7 +1,6 @@
 package com.burakcanaksoy.springsecurity.security;
 
 import com.burakcanaksoy.springsecurity.entity.LeaveRequest;
-import com.burakcanaksoy.springsecurity.entity.enums.Permission;
 import com.burakcanaksoy.springsecurity.repository.LeaveRequestRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.access.PermissionEvaluator;
@@ -43,46 +42,25 @@ public class CustomPermissionEvaluator implements PermissionEvaluator {
     }
 
     private boolean checkLeaveRequestPermission(Authentication authentication, LeaveRequest leaveRequest, String permissionStr) {
-        Permission permission;
-        try {
-            permission = Permission.valueOf(permissionStr.toUpperCase());
-        } catch (IllegalArgumentException e) {
+        if (!(authentication.getPrincipal() instanceof CustomUserPrincipal principal)) {
             return false;
         }
 
-      /*
-        Long principalId = null;
-        boolean isAdmin = false;
+        boolean isOwner = leaveRequest.getEmployee() != null && leaveRequest.getEmployee().getId().equals(principal.getId());
+        
+        boolean hasSpecificPermission = principal.getAuthorities().stream()
+                .anyMatch(a -> a.getAuthority().equalsIgnoreCase(permissionStr)
+                        || a.getAuthority().equalsIgnoreCase("LEAVE_" + permissionStr));
 
-        Object principalObj = authentication.getPrincipal();
-        if (principalObj instanceof CustomUserPrincipal customUserPrincipal) {
-            principalId = customUserPrincipal.getId();
-            isAdmin = customUserPrincipal.getAuthorities().stream()
-                    .anyMatch(a -> a.getAuthority().equals("ROLE_ADMIN") || a.getAuthority().equals("ADMIN"));
-        } else if (principalObj instanceof Employee employee) {
-            principalId = employee.getId();
-            isAdmin = employee.getRole() == Role.ADMIN;
-        }
+        boolean isAdmin = principal.getAuthorities().stream()
+                .anyMatch(a -> a.getAuthority().equals("ROLE_ADMIN"));
 
-        if (principalId == null) {
-            return false;
-        }
-
-        boolean isOwner = leaveRequest.getEmployee() != null && leaveRequest.getEmployee().getId().equals(principalId);
- */
-
-        CustomUserPrincipal principal = (CustomUserPrincipal) authentication.getPrincipal();
-
-        assert principal != null;
-        boolean isOwner = leaveRequest.getEmployee().getId().equals(principal.getId());
-        boolean isAdmin = principal.getAuthorities().stream().anyMatch(a -> a.getAuthority().equals("ROLE_ADMIN"));
-
-
-        return switch (permission) {
-            case READ -> isOwner || isAdmin;
-            case WRITE -> isOwner;
-            case DELETE -> isAdmin || isOwner;
-            case APPROVE -> isAdmin;
+        return switch (permissionStr.toUpperCase()) {
+            case "READ" -> isOwner || isAdmin || hasSpecificPermission;
+            case "WRITE" -> isOwner || hasSpecificPermission;
+            case "DELETE" -> isAdmin || isOwner || hasSpecificPermission;
+            case "APPROVE" -> isAdmin || hasSpecificPermission;
+            default -> hasSpecificPermission;
         };
     }
 }

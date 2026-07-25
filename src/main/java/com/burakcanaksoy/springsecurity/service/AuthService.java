@@ -5,6 +5,7 @@ import com.burakcanaksoy.springsecurity.dto.response.AuthResponse;
 import com.burakcanaksoy.springsecurity.dto.response.LoginResponse;
 import com.burakcanaksoy.springsecurity.dto.response.RefreshTokenResponse;
 import com.burakcanaksoy.springsecurity.entity.Employee;
+import com.burakcanaksoy.springsecurity.entity.Role;
 import com.burakcanaksoy.springsecurity.entity.PasswordResetToken;
 import com.burakcanaksoy.springsecurity.entity.RefreshToken;
 import com.burakcanaksoy.springsecurity.entity.VerificationToken;
@@ -13,6 +14,7 @@ import com.burakcanaksoy.springsecurity.exception.EmailNotVerifiedException;
 import com.burakcanaksoy.springsecurity.exception.ResourceNotFoundException;
 import com.burakcanaksoy.springsecurity.mapper.EmployeeMapper;
 import com.burakcanaksoy.springsecurity.repository.EmployeeRepository;
+import com.burakcanaksoy.springsecurity.repository.RoleRepository;
 import com.burakcanaksoy.springsecurity.security.CustomUserPrincipal;
 import com.burakcanaksoy.springsecurity.util.CookieUtil;
 import com.burakcanaksoy.springsecurity.util.JwtUtil;
@@ -36,6 +38,7 @@ import java.util.Optional;
 @RequiredArgsConstructor
 public class AuthService {
     private final EmployeeRepository repository;
+    private final RoleRepository roleRepository;
     private final EmployeeMapper mapper;
     private final PasswordEncoder passwordEncoder;
     private final JwtUtil jwtUtil;
@@ -44,14 +47,17 @@ public class AuthService {
     private final PasswordResetTokenService passwordResetTokenService;
     private final EmailService emailService;
     private final CookieUtil cookieUtil;
-    //private final AuthenticationManager authenticationManager;
 
     public AuthResponse register(EmployeeRegisterRequest registerRequest) {
         checkIfUsernameExists(registerRequest.getUsername());
         checkIfEmailExists(registerRequest.getEmail());
         checkIfPhoneExists(registerRequest.getPhoneNumber());
         checkIfTcExists(registerRequest.getTcNo());
-        Employee employee = mapper.toEmployee(registerRequest);
+
+        Role defaultRole = roleRepository.findByName("ROLE_USER")
+                .orElseGet(() -> roleRepository.save(Role.builder().name("ROLE_USER").build()));
+
+        Employee employee = mapper.toEmployee(registerRequest, java.util.Set.of(defaultRole));
         Employee saved = repository.save(employee);
 
         VerificationToken verificationToken = verificationTokenService.createVerificationToken(saved);

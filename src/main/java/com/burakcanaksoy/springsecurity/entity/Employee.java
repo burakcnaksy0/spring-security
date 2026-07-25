@@ -1,6 +1,7 @@
 package com.burakcanaksoy.springsecurity.entity;
 
 
+import com.burakcanaksoy.springsecurity.entity.enums.Role;
 import jakarta.persistence.*;
 import lombok.*;
 

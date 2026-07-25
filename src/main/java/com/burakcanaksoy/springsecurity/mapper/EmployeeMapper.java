@@ -5,7 +5,7 @@ import com.burakcanaksoy.springsecurity.dto.request.EmployeeRegisterRequest;
 import com.burakcanaksoy.springsecurity.dto.response.AuthResponse;
 import com.burakcanaksoy.springsecurity.dto.response.EmployeeResponse;
 import com.burakcanaksoy.springsecurity.entity.Employee;
-import com.burakcanaksoy.springsecurity.entity.Role;
+import com.burakcanaksoy.springsecurity.entity.enums.Role;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 

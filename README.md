@@ -1,107 +1,190 @@
-# 🛡️ Employee Management & Spring Security JWT API (email-verification Branch)
-
-Bu branch, **Spring Security 6.x** ve **Spring Boot 3.x/4.x** tabanlı projemize, kullanıcıların sisteme giriş yapabilmeden önce e-posta adreslerini doğrulamalarını zorunlu kılan **E-posta Doğrulama (Email Verification)** mekanizmasını entegre eder.
+# 📧 Email Account Verification Architecture (`email-verification` Branch)
 
 ---
 
-## 📌 Bu Branch'in Amacı ve Mantığı
-
-`email-verification` branch'inin temel amacı, sahte veya geçersiz e-posta adresleriyle kayıt yapılmasını önlemek ve hesap güvenliğini artırmaktır. Sistemin mantığı şu adımlardan oluşur:
-1. **Kayıt Esnasında Pasif Hesap**: Kullanıcı kayıt olduğunda (`/register`), `Employee` tablosundaki `enabled` alanı varsayılan olarak `false` (pasif) olarak kaydedilir.
-2. **Doğrulama Token'ı Üretimi**: Benzersiz bir UUID token (`VerificationToken`) oluşturulur, bu token ilgili çalışan (Employee) ile ilişkilendirilir ve veritabanına kaydedilir.
-3. **E-posta Gönderimi**: Kullanıcının belirttiği e-posta adresine, içinde doğrulama token'ı barındıran bir bağlantı (link) gönderilir.
-4. **Giriş Engeli**: E-posta doğrulaması tamamlanmamış (yani `enabled = false` olan) kullanıcılar sisteme giriş yapmaya çalıştıklarında kimlik doğrulama engellenir ve `EmailNotVerifiedException` fırlatılır.
-5. **E-posta Aktivasyonu**: Kullanıcı e-postadaki linke tıkladığında token doğrulanır, ilgili kullanıcının `enabled` alanı `true` yapılır ve token veritabanından temizlenir.
+## 📑 İçindekiler
+1. [Proje Tanıtımı](#1-proje-tanıtımı)
+2. [Problem Tanımı](#2-problem-tanımı)
+3. [Çözüm Yaklaşımı](#3-çözüm-yaklaşımı)
+4. [Kullanılan Teknolojiler](#4-kullanılan-teknolojiler)
+5. [Proje Mimarisi](#5-proje-mimarisi)
+6. [Klasör Yapısı](#6-klasör-yapısı)
+7. [Kodun Genel Akışı](#7-kodun-genel-akışı)
+8. [Önemli Sınıflar](#8-önemli-sınıflar)
+9. [Önemli Teknik Kavramlar](#9-önemli-teknik-kavramlar)
+10. [Kod Örnekleri](#10-kod-örnekleri)
+11. [API Açıklamaları](#11-api-açıklamaları)
+12. [Kurulum](#12-kurulum)
+13. [Konfigürasyon](#13-konfigürasyon)
+14. [Güvenlik](#14-güvenlik)
+15. [Veri Akışı](#15-veri-akışı)
+16. [Hata Yönetimi](#16-hata-yönetimi)
+17. [Performans](#17-performans)
+18. [Geliştirici Notları](#18-geliştirici-notları)
+19. [Gelecekte Yapılabilecek Geliştirmeler](#19-gelecekte-yapılabilecek-geliştirmeler)
 
 ---
 
-## 🛠️ Bu Branch'te Yapılanlar & Teknik Mimari
+## 1. Proje Tanıtımı
 
-### 1. Yeni Eklenen ve Güncellenen Sınıflar
-*   **`VerificationToken` (Entity)**: E-posta doğrulama token'ını, oluşturulduğu çalışanı ve son geçerlilik süresini (`expiryDate`) tutan veritabanı tablosudur.
-*   **`VerificationTokenService`**: Token'ı üreten, süresini kontrol eden ve doğrulayan ana iş mantığı sınıfıdır. Token geçerlilik süresi (varsayılan olarak 24 saat) yapılandırmadan okunur.
-*   **`EmailService`**: `JavaMailSender` kullanarak şablon e-postayı hazırlar ve kullanıcıya gönderir.
-*   **`EmailNotVerifiedException` (Exception)**: Doğrulanmamış kullanıcı girişlerinde fırlatılan özel bir çalışma zamanı istisnasıdır.
-*   **`GlobalExceptionHandler`**: `EmailNotVerifiedException` hatasını yakalayarak istemciye anlamlı bir JSON hata formatı dönecek şekilde güncellenmiştir.
-*   **`AuthService`**: 
-    *   `register()` metoduna e-posta doğrulama akışı (token oluşturma ve mail gönderme) eklenmiştir.
-    *   `login()` metodunda kullanıcının `enabled` durumu sorgulanıp doğrulanmamışsa giriş engellenmiştir.
-    *   `verifyEmail(token)` adında yeni bir metot eklenerek, maile tıklayan kullanıcının aktif edilmesi sağlanmıştır.
+Bu branch, yeni kaydolan kullanıcı hesaplarının gerçeğe uygunluğunu doğrulamak amacıyla **E-posta Hesabı Aktifleştirme (Email Verification Token Lifecycle)** mekanizmasını sisteme dahil etmektedir.
 
-### 2. Doğrulama Linki Akışı (Verification Flow)
-```mermaid
-sequenceDiagram
-    participant User as Kullanıcı
-    participant Controller as AuthController
-    participant Service as AuthService
-    participant Email as EmailService
-    participant DB as MySQL Veritabanı
+### Amaç ve Kapsam
+Sistemde rastgele veya sahte (fake/disposable) e-posta adresleriyle hesapsız kullanıcı kaydı yapılmasını engellemek, e-posta mülkiyeti doğrulanana kadar hesabı pasif tutmak (`enabled = false`) ve doğrulama linki üzerinden aktif etmektir.
 
-    User->>Controller: POST /register (Kayıt İsteyi)
-    Controller->>Service: register(request)
-    Service->>DB: Employee Kaydet (enabled = false)
-    Service->>Service: VerificationToken Oluştur (UUID)
-    Service->>DB: Token Kaydet (Expiry: +24 Saat)
-    Service->>Email: sendVerificationEmail(employee, token)
-    Email-->>User: E-posta Gönder (Doğrulama Linkli)
-    Controller-->>User: HTTP 201 (Başarılı Kayıt Yanıtı)
+---
 
-    Note over User, DB: Kullanıcı E-postasındaki linke tıklar:
-    User->>Controller: GET /verify?token=<token>
-    Controller->>Service: verifyEmail(token)
-    Service->>DB: Token'ı ve Süresini Sorgula
-    alt Token Geçerli ve Süresi Dolmamışsa
-        Service->>DB: Employee güncelle (enabled = true)
-        Service->>DB: VerificationToken'ı sil
-        Controller-->>User: "Email successfully verified"
-    else Token Geçersiz veya Süresi Dolmuşsa
-        Controller-->>User: Hata Yanıtı (Token expired/invalid)
-    end
+## 2. Problem Tanımı
+
+1. **Sahte Hesap ve Spam Kayıtlar**: Doğrulama adımı olmaksızın herkes istediği e-posta adresiyle sistemde kayıt açabilir (Identity Theft).
+2. **Kötüye Kullanım (Abuse)**: Başkasının e-posta adresiyle hesap açılarak sistem üzerinden bildirim veya e-posta gönderimi yapılması.
+
+---
+
+## 3. Çözüm Yaklaşımı
+
+* **Account Status (`enabled=false`)**: Kullanıcı `/register` olduğunda DB'de `enabled` varsayılan olarak `false` kaydedilir.
+* **UUID Verification Token**: `UUID.randomUUID()` ile benzersiz, tahmin edilemez 128-bitlik onay token'ı üretilir ve `verification_token` tablosunda saklanır (TTL: 24 Saat).
+* **Email Link Dispatch**: `EmailService` üzerinden kullanıcı e-posta adresine `http://localhost:8080/api/v1/auth/verify?token=...` onay linki gönderilir.
+* **Login Guard (`EmailNotVerifiedException`)**: Giriş sırasında `enabled == false` ise `EmailNotVerifiedException` fırlatılır ve oturum açma engellenir.
+
+---
+
+## 4. Kullanılan Teknolojiler
+
+| Teknoloji | Kullanım Amacı |
+| :--- | :--- |
+| **Java UUID** | Kriptografik olarak güvenli 36 karakterlik doğrulama token'ı üretimi. |
+| **Spring Boot Starter Mail** | Onay e-postası iletimi. |
+| **Spring Data JPA & MySQL** | `verification_token` tablosu ve `@OneToOne` ilişki yönetimi. |
+
+---
+
+## 5. Proje Mimarisi
+
+```
+[ User Register ] ──► Employee (enabled=false) ──► Generate VerificationToken (UUID) ──► Send Email Link
+
+[ User Clicks Email Link ] ──► GET /api/v1/auth/verify?token=UUID
+                                       │
+                                       ▼
+VerificationTokenService.verifyToken() ──► Check Expiry ──► Employee.setEnabled(true)
+
+[ User Login Attempt ] ──► Check Employee.isEnabled() 
+                               ├──► TRUE  ──► Issue JWT Tokens
+                               └──► FALSE ──► Throw EmailNotVerifiedException (403/400)
 ```
 
 ---
 
-## 🔑 E-posta Doğrulama Veritabanı Modeli
+## 6. Klasör Yapısı
 
-### VerificationToken Tablosu
-| Alan Adı | Tip | Açıklama |
-| :--- | :--- | :--- |
-| `id` | Long (PK) | Otomatik artan benzersiz ID |
-| `token` | String | Benzersiz UUID doğrulama token'ı |
-| `employee_id` | Long (FK) | Token'ın ait olduğu çalışan (Employee) |
-| `expiryDate` | Instant | Token'ın son kullanma zamanı (Expiration date) |
-
----
-
-## 🗺️ API Uç Noktaları (Endpoints)
-
-### Güncellenen ve Yeni Eklenen Uç Noktalar
-
-*   **POST** `/api/v1/auth/register`
-    *   **Değişiklik:** Artık kullanıcıyı pasif kaydeder ve e-posta doğrulama linki gönderir.
-*   **POST** `/api/v1/auth/login`
-    *   **Değişiklik:** E-posta doğrulanmamışsa `400 Bad Request` veya özel hata koduyla birlikte girişi engeller.
-*   **GET** `/api/v1/auth/verify?token={token}`
-    *   **Açıklama:** Yeni eklenen bu uç nokta, kullanıcının e-postadaki linke tıklamasıyla tetiklenir ve hesabı aktif eder.
-
----
-
-## ⚙️ Kurulum ve E-posta Yapılandırması (`application.properties`)
-
-E-posta gönderebilmek için SMTP sunucusu ayarlarının yapılması gerekir. Gerçek bir SMTP sunucusu (Gmail vb.) veya test için **Maildev / Mailhog** gibi yerel SMTP araçları kullanılabilir.
-
-`application.properties` dosyasına eklenen değişkenler:
-```properties
-# Spring Mail Configuration
-spring.mail.host=localhost
-spring.mail.port=1025
-spring.mail.username=test
-spring.mail.password=test
-spring.mail.properties.mail.smtp.auth=false
-spring.mail.properties.mail.smtp.starttls.enable=false
-
-# JWT & Verification Config
-jwt.verification-expiration=86400000# 24 Saat (Milisaniye cinsinden)
 ```
-> [!TIP]
-> Eğer Gmail SMTP kullanacaksanız, `spring.mail.host=smtp.gmail.com`, port `587` veya `465` yapıp şifre alanına Gmail'den üreteceğiniz **Uygulama Şifresini (App Password)** yazmalısınız.
+src/main/java/com/burakcanaksoy/springsecurity/
+├── entity/
+│   └── VerificationToken.java         # UUID onay token'ı entity'si
+├── service/
+│   ├── VerificationTokenService.java  # Token oluşturma ve onaylama servisi
+│   └── EmailService.java              # Onay maili gönderici servisi
+├── exception/
+│   └── EmailNotVerifiedException.java # Hesabı onaylanmamış kullanıcı istisnası
+└── repository/
+    └── VerificationTokenRepository.java
+```
+
+---
+
+## 7. Kodun Genel Akışı
+
+1. Kullanıcı kaydolur. `AuthService.register()` kullanıcının `enabled` durumunu `false` yapar.
+2. `VerificationTokenService` 24 saatlik UUID token'ı oluşturur ve veritabanına yazar.
+3. Kullanıcıya doğrulama linki e-posta atılır.
+4. Kullanıcı onay linkine tıklar. `GET /api/v1/auth/verify` çağrılır.
+5. Token geçerliyse kullanıcının `enabled` alanı `true` yapılır ve doğrulama token'ı DB'den silinir.
+
+---
+
+## 8. Önemli Sınıflar
+
+* **`VerificationToken`**: Token string'i, `employee` ilişkisi ve `expiryDate` barındıran entity.
+* **`VerificationTokenService`**: Token doğrulama ve kullanıcı aktivasyon mantığı.
+* **`EmailNotVerifiedException`**: Onaylanmamış hesap giriş denemelerinde fırlatılan özel istisna.
+
+---
+
+## 9. Önemli Teknik Kavramlar
+
+* **Account Activation**: Hesabın mülkiyet kanıtlanana kadar kilitli tutulması prensibi.
+* **UUID (Universally Unique Identifier)**: 128-bitlik benzersiz kimlik üreteci.
+
+---
+
+## 10. Kod Örnekleri
+
+### Doğrulama Uç Noktası (`AuthController.java`)
+```java
+@GetMapping("/verify")
+public ResponseEntity<String> verifyEmail(@RequestParam String token) {
+    return ResponseEntity.ok(authService.verifyEmail(token));
+}
+```
+
+---
+
+## 11. API Açıklamaları
+
+| Method | Endpoint | Parametre | Açıklama |
+| :--- | :--- | :--- | :--- |
+| **GET** | `/api/v1/auth/verify` | `?token=UUID` | Kullanıcının e-posta hesabını doğrular ve aktif eder. |
+
+---
+
+## 12. Kurulum
+
+1. Mail sunucu ayarlarını `application.properties` dosyasına ekleyin.
+2. Projeyi çalıştırıp `/register` ile kullanıcı oluşturun ve e-postanıza gelen link ile doğrulayın.
+
+---
+
+## 13. Konfigürasyon
+
+* Token ömrü varsayılan 24 saattir (`Instant.now().plus(24, ChronoUnit.HOURS)`).
+
+---
+
+## 14. Güvenlik
+
+* Doğrulanmamış hesaplar sisteme erişemez.
+* Süresi dolan token'lar otomatik reddedilir.
+
+---
+
+## 15. Veri Akışı
+
+```
+Register -> Inactive User -> Save UUID -> Email Dispatch -> User Click Link -> Mark Active -> Enabled
+```
+
+---
+
+## 16. Hata Yönetimi
+
+* Doğrulanmamış hesapla login denemesinde `EmailNotVerifiedException` fırlatılır ve `GlobalExceptionHandler` tarafından yakalanır.
+
+---
+
+## 17. Performans
+
+* Token doğrulandıktan sonra veritabanından silindiği için `verification_token` tablosu şişmez.
+
+---
+
+## 18. Geliştirici Notları
+
+* E-posta ulaşmama durumları için `/resend-verification-token` endpoint'i eklenmesi faydalı olacaktır.
+
+---
+
+## 19. Gelecekte Yapılabilecek Geliştirmeler
+
+- [ ] Onay mailini yeniden gönderme (`/resend-verification`) desteği.

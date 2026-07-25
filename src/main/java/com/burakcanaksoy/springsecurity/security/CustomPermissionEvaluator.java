@@ -1,8 +1,7 @@
 package com.burakcanaksoy.springsecurity.security;
 
-import com.burakcanaksoy.springsecurity.entity.Employee;
 import com.burakcanaksoy.springsecurity.entity.LeaveRequest;
-import com.burakcanaksoy.springsecurity.entity.enums.Role;
+import com.burakcanaksoy.springsecurity.entity.enums.Permission;
 import com.burakcanaksoy.springsecurity.repository.LeaveRequestRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.access.PermissionEvaluator;
@@ -43,7 +42,15 @@ public class CustomPermissionEvaluator implements PermissionEvaluator {
         return false;
     }
 
-    private boolean checkLeaveRequestPermission(Authentication authentication, LeaveRequest leaveRequest, String permission) {
+    private boolean checkLeaveRequestPermission(Authentication authentication, LeaveRequest leaveRequest, String permissionStr) {
+        Permission permission;
+        try {
+            permission = Permission.valueOf(permissionStr.toUpperCase());
+        } catch (IllegalArgumentException e) {
+            return false;
+        }
+
+      /*
         Long principalId = null;
         boolean isAdmin = false;
 
@@ -62,13 +69,20 @@ public class CustomPermissionEvaluator implements PermissionEvaluator {
         }
 
         boolean isOwner = leaveRequest.getEmployee() != null && leaveRequest.getEmployee().getId().equals(principalId);
+ */
+
+        CustomUserPrincipal principal = (CustomUserPrincipal) authentication.getPrincipal();
+
+        assert principal != null;
+        boolean isOwner = leaveRequest.getEmployee().getId().equals(principal.getId());
+        boolean isAdmin = principal.getAuthorities().stream().anyMatch(a -> a.getAuthority().equals("ROLE_ADMIN"));
+
 
         return switch (permission) {
-            case "READ" -> isOwner || isAdmin;
-            case "WRITE" -> isOwner;
-            case "DELETE" -> isAdmin || isOwner;
-            case "APPROVE" -> isAdmin;
-            default -> false;
+            case READ -> isOwner || isAdmin;
+            case WRITE -> isOwner;
+            case DELETE -> isAdmin || isOwner;
+            case APPROVE -> isAdmin;
         };
     }
 }

@@ -1,0 +1,4515 @@
+{
+  "info": {
+    "_postman_id": "da5801e4-58dc-4da1-8c0b-130725e5afa8",
+    "name": "Spring Security Multi-Branch API Collection",
+    "description": "Comprehensive Postman Collection representing all endpoints across all 10 branches in the spring-security project.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "Branch: master",
+      "item": [
+        {
+          "name": "AuthController",
+          "item": [
+            {
+              "name": "POST - register (/api/v1/auth/register)",
+              "request": {
+                "method": "POST",
+                "header": [],
+                "url": {
+                  "raw": "{{base_url}}/api/v1/auth/register",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "auth",
+                    "register"
+                  ]
+                },
+                "description": "**Branch**: `master`\n**Controller**: `AuthController`\n**Method**: `register`\n**Request Body**: `EmployeeRegisterRequest`\n",
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"username\": \"burak_user\",\n  \"email\": \"user@example.com\",\n  \"phoneNumber\": \"5551234567\",\n  \"tcNo\": \"12345678901\",\n  \"password\": \"Password123!\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "POST - login (/api/v1/auth/login)",
+              "request": {
+                "method": "POST",
+                "header": [],
+                "url": {
+                  "raw": "{{base_url}}/api/v1/auth/login",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "auth",
+                    "login"
+                  ]
+                },
+                "description": "**Branch**: `master`\n**Controller**: `AuthController`\n**Method**: `login`\n**Request Body**: `EmployeeLoginRequest`\n",
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"username\": \"burak_user\",\n  \"password\": \"Password123!\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "POST - refresh (/api/v1/auth/refresh)",
+              "request": {
+                "method": "POST",
+                "header": [],
+                "url": {
+                  "raw": "{{base_url}}/api/v1/auth/refresh",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "auth",
+                    "refresh"
+                  ]
+                },
+                "description": "**Branch**: `master`\n**Controller**: `AuthController`\n**Method**: `refresh`\n**Request Body**: `RefreshTokenRequest`\n",
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"refreshToken\": \"sample_refresh_token_here\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "POST - logout (/api/v1/auth/logout)",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{token}}",
+                    "description": "Requires authentication token"
+                  }
+                ],
+                "url": {
+                  "raw": "{{base_url}}/api/v1/auth/logout",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "auth",
+                    "logout"
+                  ]
+                },
+                "description": "**Branch**: `master`\n**Controller**: `AuthController`\n**Method**: `logout`\n"
+              },
+              "response": []
+            }
+          ]
+        },
+        {
+          "name": "EmployeeController",
+          "item": [
+            {
+              "name": "GET - getAllEmployees (/api/v1/employees/all)",
+              "request": {
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{token}}",
+                    "description": "Requires authorization: hasRole('ADMIN')"
+                  }
+                ],
+                "url": {
+                  "raw": "{{base_url}}/api/v1/employees/all",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "employees",
+                    "all"
+                  ]
+                },
+                "description": "**Branch**: `master`\n**Controller**: `EmployeeController`\n**Method**: `getAllEmployees`\n**Security (PreAuthorize)**: `hasRole('ADMIN')`\n"
+              },
+              "response": []
+            },
+            {
+              "name": "DELETE - deleteEmployee (/api/v1/employees/{id})",
+              "request": {
+                "method": "DELETE",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{token}}",
+                    "description": "Requires authorization: hasRole('ADMIN')"
+                  }
+                ],
+                "url": {
+                  "raw": "{{base_url}}/api/v1/employees/:id",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "employees",
+                    ":id"
+                  ],
+                  "variable": [
+                    {
+                      "key": "id",
+                      "value": "1",
+                      "description": "Path Parameter"
+                    }
+                  ]
+                },
+                "description": "**Branch**: `master`\n**Controller**: `EmployeeController`\n**Method**: `deleteEmployee`\n**Security (PreAuthorize)**: `hasRole('ADMIN')`\n"
+              },
+              "response": []
+            },
+            {
+              "name": "GET - getEmployee (/api/v1/employees)",
+              "request": {
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{token}}",
+                    "description": "Requires authorization: hasAnyRole('ADMIN','USER')"
+                  }
+                ],
+                "url": {
+                  "raw": "{{base_url}}/api/v1/employees",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "employees"
+                  ]
+                },
+                "description": "**Branch**: `master`\n**Controller**: `EmployeeController`\n**Method**: `getEmployee`\n**Security (PreAuthorize)**: `hasAnyRole('ADMIN','USER')`\n"
+              },
+              "response": []
+            },
+            {
+              "name": "PUT - updateEmployeeInformationAfterLogin (/api/v1/employees)",
+              "request": {
+                "method": "PUT",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{token}}",
+                    "description": "Requires authentication token"
+                  }
+                ],
+                "url": {
+                  "raw": "{{base_url}}/api/v1/employees",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "employees"
+                  ]
+                },
+                "description": "**Branch**: `master`\n**Controller**: `EmployeeController`\n**Method**: `updateEmployeeInformationAfterLogin`\n**Request Body**: `EmployeeCreateRequest`\n",
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"username\": \"burak_user\",\n  \"firstName\": \"Burak\",\n  \"lastName\": \"Can\",\n  \"email\": \"user@example.com\",\n  \"tcNo\": \"12345678901\",\n  \"phoneNumber\": \"5551234567\",\n  \"birthDate\": \"1995-05-15\",\n  \"gender\": \"MALE\",\n  \"address\": \"Istanbul, Turkey\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              },
+              "response": []
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Branch: email-verification",
+      "item": [
+        {
+          "name": "AuthController",
+          "item": [
+            {
+              "name": "POST - register (/api/v1/auth/register)",
+              "request": {
+                "method": "POST",
+                "header": [],
+                "url": {
+                  "raw": "{{base_url}}/api/v1/auth/register",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "auth",
+                    "register"
+                  ]
+                },
+                "description": "**Branch**: `email-verification`\n**Controller**: `AuthController`\n**Method**: `register`\n**Request Body**: `EmployeeRegisterRequest`\n",
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"username\": \"burak_user\",\n  \"email\": \"user@example.com\",\n  \"phoneNumber\": \"5551234567\",\n  \"tcNo\": \"12345678901\",\n  \"password\": \"Password123!\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "POST - login (/api/v1/auth/login)",
+              "request": {
+                "method": "POST",
+                "header": [],
+                "url": {
+                  "raw": "{{base_url}}/api/v1/auth/login",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "auth",
+                    "login"
+                  ]
+                },
+                "description": "**Branch**: `email-verification`\n**Controller**: `AuthController`\n**Method**: `login`\n**Request Body**: `EmployeeLoginRequest`\n",
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"username\": \"burak_user\",\n  \"password\": \"Password123!\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "POST - refresh (/api/v1/auth/refresh)",
+              "request": {
+                "method": "POST",
+                "header": [],
+                "url": {
+                  "raw": "{{base_url}}/api/v1/auth/refresh",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "auth",
+                    "refresh"
+                  ]
+                },
+                "description": "**Branch**: `email-verification`\n**Controller**: `AuthController`\n**Method**: `refresh`\n**Request Body**: `RefreshTokenRequest`\n",
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"refreshToken\": \"sample_refresh_token_here\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "POST - logout (/api/v1/auth/logout)",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{token}}",
+                    "description": "Requires authentication token"
+                  }
+                ],
+                "url": {
+                  "raw": "{{base_url}}/api/v1/auth/logout",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "auth",
+                    "logout"
+                  ]
+                },
+                "description": "**Branch**: `email-verification`\n**Controller**: `AuthController`\n**Method**: `logout`\n"
+              },
+              "response": []
+            },
+            {
+              "name": "GET - verifyEmail (/api/v1/auth/verify)",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{base_url}}/api/v1/auth/verify",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "auth",
+                    "verify"
+                  ],
+                  "query": [
+                    {
+                      "key": "token",
+                      "value": "sample_verification_token",
+                      "description": "Type: String, Required: true"
+                    }
+                  ]
+                },
+                "description": "**Branch**: `email-verification`\n**Controller**: `AuthController`\n**Method**: `verifyEmail`\n**Query Parameters**: `token`\n"
+              },
+              "response": []
+            }
+          ]
+        },
+        {
+          "name": "EmployeeController",
+          "item": [
+            {
+              "name": "GET - getAllEmployees (/api/v1/employees/all)",
+              "request": {
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{token}}",
+                    "description": "Requires authorization: hasRole('ADMIN')"
+                  }
+                ],
+                "url": {
+                  "raw": "{{base_url}}/api/v1/employees/all",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "employees",
+                    "all"
+                  ]
+                },
+                "description": "**Branch**: `email-verification`\n**Controller**: `EmployeeController`\n**Method**: `getAllEmployees`\n**Security (PreAuthorize)**: `hasRole('ADMIN')`\n"
+              },
+              "response": []
+            },
+            {
+              "name": "DELETE - deleteEmployee (/api/v1/employees/{id})",
+              "request": {
+                "method": "DELETE",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{token}}",
+                    "description": "Requires authorization: hasRole('ADMIN')"
+                  }
+                ],
+                "url": {
+                  "raw": "{{base_url}}/api/v1/employees/:id",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "employees",
+                    ":id"
+                  ],
+                  "variable": [
+                    {
+                      "key": "id",
+                      "value": "1",
+                      "description": "Path Parameter"
+                    }
+                  ]
+                },
+                "description": "**Branch**: `email-verification`\n**Controller**: `EmployeeController`\n**Method**: `deleteEmployee`\n**Security (PreAuthorize)**: `hasRole('ADMIN')`\n"
+              },
+              "response": []
+            },
+            {
+              "name": "GET - getEmployee (/api/v1/employees)",
+              "request": {
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{token}}",
+                    "description": "Requires authorization: hasAnyRole('ADMIN','USER')"
+                  }
+                ],
+                "url": {
+                  "raw": "{{base_url}}/api/v1/employees",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "employees"
+                  ]
+                },
+                "description": "**Branch**: `email-verification`\n**Controller**: `EmployeeController`\n**Method**: `getEmployee`\n**Security (PreAuthorize)**: `hasAnyRole('ADMIN','USER')`\n"
+              },
+              "response": []
+            },
+            {
+              "name": "PUT - updateEmployeeInformationAfterLogin (/api/v1/employees)",
+              "request": {
+                "method": "PUT",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{token}}",
+                    "description": "Requires authentication token"
+                  }
+                ],
+                "url": {
+                  "raw": "{{base_url}}/api/v1/employees",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "employees"
+                  ]
+                },
+                "description": "**Branch**: `email-verification`\n**Controller**: `EmployeeController`\n**Method**: `updateEmployeeInformationAfterLogin`\n**Request Body**: `EmployeeCreateRequest`\n",
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"username\": \"burak_user\",\n  \"firstName\": \"Burak\",\n  \"lastName\": \"Can\",\n  \"email\": \"user@example.com\",\n  \"tcNo\": \"12345678901\",\n  \"phoneNumber\": \"5551234567\",\n  \"birthDate\": \"1995-05-15\",\n  \"gender\": \"MALE\",\n  \"address\": \"Istanbul, Turkey\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              },
+              "response": []
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Branch: password-reset-token",
+      "item": [
+        {
+          "name": "AuthController",
+          "item": [
+            {
+              "name": "POST - register (/api/v1/auth/register)",
+              "request": {
+                "method": "POST",
+                "header": [],
+                "url": {
+                  "raw": "{{base_url}}/api/v1/auth/register",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "auth",
+                    "register"
+                  ]
+                },
+                "description": "**Branch**: `password-reset-token`\n**Controller**: `AuthController`\n**Method**: `register`\n**Request Body**: `EmployeeRegisterRequest`\n",
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"username\": \"burak_user\",\n  \"email\": \"user@example.com\",\n  \"phoneNumber\": \"5551234567\",\n  \"tcNo\": \"12345678901\",\n  \"password\": \"Password123!\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "POST - login (/api/v1/auth/login)",
+              "request": {
+                "method": "POST",
+                "header": [],
+                "url": {
+                  "raw": "{{base_url}}/api/v1/auth/login",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "auth",
+                    "login"
+                  ]
+                },
+                "description": "**Branch**: `password-reset-token`\n**Controller**: `AuthController`\n**Method**: `login`\n**Request Body**: `EmployeeLoginRequest`\n",
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"username\": \"burak_user\",\n  \"password\": \"Password123!\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "POST - refresh (/api/v1/auth/refresh)",
+              "request": {
+                "method": "POST",
+                "header": [],
+                "url": {
+                  "raw": "{{base_url}}/api/v1/auth/refresh",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "auth",
+                    "refresh"
+                  ]
+                },
+                "description": "**Branch**: `password-reset-token`\n**Controller**: `AuthController`\n**Method**: `refresh`\n**Request Body**: `RefreshTokenRequest`\n",
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"refreshToken\": \"sample_refresh_token_here\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "POST - logout (/api/v1/auth/logout)",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{token}}",
+                    "description": "Requires authentication token"
+                  }
+                ],
+                "url": {
+                  "raw": "{{base_url}}/api/v1/auth/logout",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "auth",
+                    "logout"
+                  ]
+                },
+                "description": "**Branch**: `password-reset-token`\n**Controller**: `AuthController`\n**Method**: `logout`\n"
+              },
+              "response": []
+            },
+            {
+              "name": "GET - verifyEmail (/api/v1/auth/verify)",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{base_url}}/api/v1/auth/verify",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "auth",
+                    "verify"
+                  ],
+                  "query": [
+                    {
+                      "key": "token",
+                      "value": "sample_verification_token",
+                      "description": "Type: String, Required: true"
+                    }
+                  ]
+                },
+                "description": "**Branch**: `password-reset-token`\n**Controller**: `AuthController`\n**Method**: `verifyEmail`\n**Query Parameters**: `token`\n"
+              },
+              "response": []
+            },
+            {
+              "name": "POST - forgotPassword (/api/v1/auth/forgot-password)",
+              "request": {
+                "method": "POST",
+                "header": [],
+                "url": {
+                  "raw": "{{base_url}}/api/v1/auth/forgot-password",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "auth",
+                    "forgot-password"
+                  ]
+                },
+                "description": "**Branch**: `password-reset-token`\n**Controller**: `AuthController`\n**Method**: `forgotPassword`\n**Request Body**: `ForgotPasswordRequest`\n",
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"email\": \"user@example.com\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "POST - resetPassword (/api/v1/auth/reset-password)",
+              "request": {
+                "method": "POST",
+                "header": [],
+                "url": {
+                  "raw": "{{base_url}}/api/v1/auth/reset-password",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "auth",
+                    "reset-password"
+                  ],
+                  "query": [
+                    {
+                      "key": "token",
+                      "value": "sample_reset_token",
+                      "description": "Type: String, Required: true"
+                    }
+                  ]
+                },
+                "description": "**Branch**: `password-reset-token`\n**Controller**: `AuthController`\n**Method**: `resetPassword`\n**Query Parameters**: `token`\n**Request Body**: `ResetPasswordRequest`\n",
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"newPassword\": \"NewPassword123!\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              },
+              "response": []
+            }
+          ]
+        },
+        {
+          "name": "EmployeeController",
+          "item": [
+            {
+              "name": "GET - getAllEmployees (/api/v1/employees/all)",
+              "request": {
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{token}}",
+                    "description": "Requires authorization: hasRole('ADMIN')"
+                  }
+                ],
+                "url": {
+                  "raw": "{{base_url}}/api/v1/employees/all",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "employees",
+                    "all"
+                  ]
+                },
+                "description": "**Branch**: `password-reset-token`\n**Controller**: `EmployeeController`\n**Method**: `getAllEmployees`\n**Security (PreAuthorize)**: `hasRole('ADMIN')`\n"
+              },
+              "response": []
+            },
+            {
+              "name": "DELETE - deleteEmployee (/api/v1/employees/{id})",
+              "request": {
+                "method": "DELETE",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{token}}",
+                    "description": "Requires authorization: hasRole('ADMIN')"
+                  }
+                ],
+                "url": {
+                  "raw": "{{base_url}}/api/v1/employees/:id",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "employees",
+                    ":id"
+                  ],
+                  "variable": [
+                    {
+                      "key": "id",
+                      "value": "1",
+                      "description": "Path Parameter"
+                    }
+                  ]
+                },
+                "description": "**Branch**: `password-reset-token`\n**Controller**: `EmployeeController`\n**Method**: `deleteEmployee`\n**Security (PreAuthorize)**: `hasRole('ADMIN')`\n"
+              },
+              "response": []
+            },
+            {
+              "name": "GET - getEmployee (/api/v1/employees)",
+              "request": {
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{token}}",
+                    "description": "Requires authorization: hasAnyRole('ADMIN','USER')"
+                  }
+                ],
+                "url": {
+                  "raw": "{{base_url}}/api/v1/employees",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "employees"
+                  ]
+                },
+                "description": "**Branch**: `password-reset-token`\n**Controller**: `EmployeeController`\n**Method**: `getEmployee`\n**Security (PreAuthorize)**: `hasAnyRole('ADMIN','USER')`\n"
+              },
+              "response": []
+            },
+            {
+              "name": "PUT - updateEmployeeInformationAfterLogin (/api/v1/employees)",
+              "request": {
+                "method": "PUT",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{token}}",
+                    "description": "Requires authentication token"
+                  }
+                ],
+                "url": {
+                  "raw": "{{base_url}}/api/v1/employees",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "employees"
+                  ]
+                },
+                "description": "**Branch**: `password-reset-token`\n**Controller**: `EmployeeController`\n**Method**: `updateEmployeeInformationAfterLogin`\n**Request Body**: `EmployeeCreateRequest`\n",
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"username\": \"burak_user\",\n  \"firstName\": \"Burak\",\n  \"lastName\": \"Can\",\n  \"email\": \"user@example.com\",\n  \"tcNo\": \"12345678901\",\n  \"phoneNumber\": \"5551234567\",\n  \"birthDate\": \"1995-05-15\",\n  \"gender\": \"MALE\",\n  \"address\": \"Istanbul, Turkey\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              },
+              "response": []
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Branch: 2fa-email-otp",
+      "item": [
+        {
+          "name": "AuthController",
+          "item": [
+            {
+              "name": "POST - register (/api/v1/auth/register)",
+              "request": {
+                "method": "POST",
+                "header": [],
+                "url": {
+                  "raw": "{{base_url}}/api/v1/auth/register",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "auth",
+                    "register"
+                  ]
+                },
+                "description": "**Branch**: `2fa-email-otp`\n**Controller**: `AuthController`\n**Method**: `register`\n**Request Body**: `EmployeeRegisterRequest`\n",
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"username\": \"burak_user\",\n  \"email\": \"user@example.com\",\n  \"phoneNumber\": \"5551234567\",\n  \"tcNo\": \"12345678901\",\n  \"password\": \"Password123!\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "POST - login (/api/v1/auth/login)",
+              "request": {
+                "method": "POST",
+                "header": [],
+                "url": {
+                  "raw": "{{base_url}}/api/v1/auth/login",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "auth",
+                    "login"
+                  ]
+                },
+                "description": "**Branch**: `2fa-email-otp`\n**Controller**: `AuthController`\n**Method**: `login`\n**Request Body**: `EmployeeLoginRequest`\n",
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"username\": \"burak_user\",\n  \"password\": \"Password123!\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "POST - refresh (/api/v1/auth/refresh)",
+              "request": {
+                "method": "POST",
+                "header": [],
+                "url": {
+                  "raw": "{{base_url}}/api/v1/auth/refresh",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "auth",
+                    "refresh"
+                  ]
+                },
+                "description": "**Branch**: `2fa-email-otp`\n**Controller**: `AuthController`\n**Method**: `refresh`\n**Request Body**: `RefreshTokenRequest`\n",
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"refreshToken\": \"sample_refresh_token_here\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "POST - logout (/api/v1/auth/logout)",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{token}}",
+                    "description": "Requires authentication token"
+                  }
+                ],
+                "url": {
+                  "raw": "{{base_url}}/api/v1/auth/logout",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "auth",
+                    "logout"
+                  ]
+                },
+                "description": "**Branch**: `2fa-email-otp`\n**Controller**: `AuthController`\n**Method**: `logout`\n"
+              },
+              "response": []
+            },
+            {
+              "name": "GET - verifyEmail (/api/v1/auth/verify)",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{base_url}}/api/v1/auth/verify",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "auth",
+                    "verify"
+                  ],
+                  "query": [
+                    {
+                      "key": "token",
+                      "value": "sample_verification_token",
+                      "description": "Type: String, Required: true"
+                    }
+                  ]
+                },
+                "description": "**Branch**: `2fa-email-otp`\n**Controller**: `AuthController`\n**Method**: `verifyEmail`\n**Query Parameters**: `token`\n"
+              },
+              "response": []
+            },
+            {
+              "name": "POST - forgotPassword (/api/v1/auth/forgot-password)",
+              "request": {
+                "method": "POST",
+                "header": [],
+                "url": {
+                  "raw": "{{base_url}}/api/v1/auth/forgot-password",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "auth",
+                    "forgot-password"
+                  ]
+                },
+                "description": "**Branch**: `2fa-email-otp`\n**Controller**: `AuthController`\n**Method**: `forgotPassword`\n**Request Body**: `ForgotPasswordRequest`\n",
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"email\": \"user@example.com\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "POST - resetPassword (/api/v1/auth/reset-password)",
+              "request": {
+                "method": "POST",
+                "header": [],
+                "url": {
+                  "raw": "{{base_url}}/api/v1/auth/reset-password",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "auth",
+                    "reset-password"
+                  ],
+                  "query": [
+                    {
+                      "key": "token",
+                      "value": "sample_reset_token",
+                      "description": "Type: String, Required: true"
+                    }
+                  ]
+                },
+                "description": "**Branch**: `2fa-email-otp`\n**Controller**: `AuthController`\n**Method**: `resetPassword`\n**Query Parameters**: `token`\n**Request Body**: `ResetPasswordRequest`\n",
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"newPassword\": \"NewPassword123!\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "POST - verifyOtp (/api/v1/auth/verify-otp)",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{token}}",
+                    "description": "Requires authentication token"
+                  }
+                ],
+                "url": {
+                  "raw": "{{base_url}}/api/v1/auth/verify-otp",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "auth",
+                    "verify-otp"
+                  ],
+                  "query": [
+                    {
+                      "key": "code",
+                      "value": "123456",
+                      "description": "Type: String, Required: true"
+                    }
+                  ]
+                },
+                "description": "**Branch**: `2fa-email-otp`\n**Controller**: `AuthController`\n**Method**: `verifyOtp`\n**Query Parameters**: `code`\n"
+              },
+              "response": []
+            }
+          ]
+        },
+        {
+          "name": "EmployeeController",
+          "item": [
+            {
+              "name": "GET - getAllEmployees (/api/v1/employees/all)",
+              "request": {
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{token}}",
+                    "description": "Requires authorization: hasRole('ADMIN')"
+                  }
+                ],
+                "url": {
+                  "raw": "{{base_url}}/api/v1/employees/all",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "employees",
+                    "all"
+                  ]
+                },
+                "description": "**Branch**: `2fa-email-otp`\n**Controller**: `EmployeeController`\n**Method**: `getAllEmployees`\n**Security (PreAuthorize)**: `hasRole('ADMIN')`\n"
+              },
+              "response": []
+            },
+            {
+              "name": "DELETE - deleteEmployee (/api/v1/employees/{id})",
+              "request": {
+                "method": "DELETE",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{token}}",
+                    "description": "Requires authorization: hasRole('ADMIN')"
+                  }
+                ],
+                "url": {
+                  "raw": "{{base_url}}/api/v1/employees/:id",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "employees",
+                    ":id"
+                  ],
+                  "variable": [
+                    {
+                      "key": "id",
+                      "value": "1",
+                      "description": "Path Parameter"
+                    }
+                  ]
+                },
+                "description": "**Branch**: `2fa-email-otp`\n**Controller**: `EmployeeController`\n**Method**: `deleteEmployee`\n**Security (PreAuthorize)**: `hasRole('ADMIN')`\n"
+              },
+              "response": []
+            },
+            {
+              "name": "GET - getEmployee (/api/v1/employees)",
+              "request": {
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{token}}",
+                    "description": "Requires authorization: hasAnyRole('ADMIN','USER')"
+                  }
+                ],
+                "url": {
+                  "raw": "{{base_url}}/api/v1/employees",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "employees"
+                  ]
+                },
+                "description": "**Branch**: `2fa-email-otp`\n**Controller**: `EmployeeController`\n**Method**: `getEmployee`\n**Security (PreAuthorize)**: `hasAnyRole('ADMIN','USER')`\n"
+              },
+              "response": []
+            },
+            {
+              "name": "PUT - updateEmployeeInformationAfterLogin (/api/v1/employees)",
+              "request": {
+                "method": "PUT",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{token}}",
+                    "description": "Requires authentication token"
+                  }
+                ],
+                "url": {
+                  "raw": "{{base_url}}/api/v1/employees",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "employees"
+                  ]
+                },
+                "description": "**Branch**: `2fa-email-otp`\n**Controller**: `EmployeeController`\n**Method**: `updateEmployeeInformationAfterLogin`\n**Request Body**: `EmployeeCreateRequest`\n",
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"username\": \"burak_user\",\n  \"firstName\": \"Burak\",\n  \"lastName\": \"Can\",\n  \"email\": \"user@example.com\",\n  \"tcNo\": \"12345678901\",\n  \"phoneNumber\": \"5551234567\",\n  \"birthDate\": \"1995-05-15\",\n  \"gender\": \"MALE\",\n  \"address\": \"Istanbul, Turkey\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              },
+              "response": []
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Branch: 2fa-google-authenticator",
+      "item": [
+        {
+          "name": "MfaController",
+          "item": [
+            {
+              "name": "POST - setupTotp (/api/v1/mfa/setup)",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{token}}",
+                    "description": "Requires authentication token"
+                  }
+                ],
+                "url": {
+                  "raw": "{{base_url}}/api/v1/mfa/setup",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "mfa",
+                    "setup"
+                  ]
+                },
+                "description": "**Branch**: `2fa-google-authenticator`\n**Controller**: `MfaController`\n**Method**: `setupTotp`\n"
+              },
+              "response": []
+            },
+            {
+              "name": "POST - enableTotp (/api/v1/mfa/enable)",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{token}}",
+                    "description": "Requires authentication token"
+                  }
+                ],
+                "url": {
+                  "raw": "{{base_url}}/api/v1/mfa/enable",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "mfa",
+                    "enable"
+                  ],
+                  "query": [
+                    {
+                      "key": "code",
+                      "value": "123456",
+                      "description": "Type: String, Required: true"
+                    }
+                  ]
+                },
+                "description": "**Branch**: `2fa-google-authenticator`\n**Controller**: `MfaController`\n**Method**: `enableTotp`\n**Query Parameters**: `code`\n"
+              },
+              "response": []
+            }
+          ]
+        },
+        {
+          "name": "AuthController",
+          "item": [
+            {
+              "name": "POST - register (/api/v1/auth/register)",
+              "request": {
+                "method": "POST",
+                "header": [],
+                "url": {
+                  "raw": "{{base_url}}/api/v1/auth/register",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "auth",
+                    "register"
+                  ]
+                },
+                "description": "**Branch**: `2fa-google-authenticator`\n**Controller**: `AuthController`\n**Method**: `register`\n**Request Body**: `EmployeeRegisterRequest`\n",
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"username\": \"burak_user\",\n  \"email\": \"user@example.com\",\n  \"phoneNumber\": \"5551234567\",\n  \"tcNo\": \"12345678901\",\n  \"password\": \"Password123!\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "POST - login (/api/v1/auth/login)",
+              "request": {
+                "method": "POST",
+                "header": [],
+                "url": {
+                  "raw": "{{base_url}}/api/v1/auth/login",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "auth",
+                    "login"
+                  ]
+                },
+                "description": "**Branch**: `2fa-google-authenticator`\n**Controller**: `AuthController`\n**Method**: `login`\n**Request Body**: `EmployeeLoginRequest`\n",
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"username\": \"burak_user\",\n  \"password\": \"Password123!\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "POST - refresh (/api/v1/auth/refresh)",
+              "request": {
+                "method": "POST",
+                "header": [],
+                "url": {
+                  "raw": "{{base_url}}/api/v1/auth/refresh",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "auth",
+                    "refresh"
+                  ]
+                },
+                "description": "**Branch**: `2fa-google-authenticator`\n**Controller**: `AuthController`\n**Method**: `refresh`\n**Request Body**: `RefreshTokenRequest`\n",
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"refreshToken\": \"sample_refresh_token_here\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "POST - logout (/api/v1/auth/logout)",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{token}}",
+                    "description": "Requires authentication token"
+                  }
+                ],
+                "url": {
+                  "raw": "{{base_url}}/api/v1/auth/logout",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "auth",
+                    "logout"
+                  ]
+                },
+                "description": "**Branch**: `2fa-google-authenticator`\n**Controller**: `AuthController`\n**Method**: `logout`\n"
+              },
+              "response": []
+            },
+            {
+              "name": "GET - verifyEmail (/api/v1/auth/verify)",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{base_url}}/api/v1/auth/verify",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "auth",
+                    "verify"
+                  ],
+                  "query": [
+                    {
+                      "key": "token",
+                      "value": "sample_verification_token",
+                      "description": "Type: String, Required: true"
+                    }
+                  ]
+                },
+                "description": "**Branch**: `2fa-google-authenticator`\n**Controller**: `AuthController`\n**Method**: `verifyEmail`\n**Query Parameters**: `token`\n"
+              },
+              "response": []
+            },
+            {
+              "name": "POST - forgotPassword (/api/v1/auth/forgot-password)",
+              "request": {
+                "method": "POST",
+                "header": [],
+                "url": {
+                  "raw": "{{base_url}}/api/v1/auth/forgot-password",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "auth",
+                    "forgot-password"
+                  ]
+                },
+                "description": "**Branch**: `2fa-google-authenticator`\n**Controller**: `AuthController`\n**Method**: `forgotPassword`\n**Request Body**: `ForgotPasswordRequest`\n",
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"email\": \"user@example.com\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "POST - resetPassword (/api/v1/auth/reset-password)",
+              "request": {
+                "method": "POST",
+                "header": [],
+                "url": {
+                  "raw": "{{base_url}}/api/v1/auth/reset-password",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "auth",
+                    "reset-password"
+                  ],
+                  "query": [
+                    {
+                      "key": "token",
+                      "value": "sample_reset_token",
+                      "description": "Type: String, Required: true"
+                    }
+                  ]
+                },
+                "description": "**Branch**: `2fa-google-authenticator`\n**Controller**: `AuthController`\n**Method**: `resetPassword`\n**Query Parameters**: `token`\n**Request Body**: `ResetPasswordRequest`\n",
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"newPassword\": \"NewPassword123!\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "POST - sendOtp (/api/v1/auth/send-otp)",
+              "request": {
+                "method": "POST",
+                "header": [],
+                "url": {
+                  "raw": "{{base_url}}/api/v1/auth/send-otp",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "auth",
+                    "send-otp"
+                  ]
+                },
+                "description": "**Branch**: `2fa-google-authenticator`\n**Controller**: `AuthController`\n**Method**: `sendOtp`\n**Request Body**: `EmailOtpRequest`\n",
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"username\": \"burak_user\",\n  \"password\": \"Password123!\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "POST - verifyOtp (/api/v1/auth/verify-otp)",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{token}}",
+                    "description": "Requires authentication token"
+                  }
+                ],
+                "url": {
+                  "raw": "{{base_url}}/api/v1/auth/verify-otp",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "auth",
+                    "verify-otp"
+                  ]
+                },
+                "description": "**Branch**: `2fa-google-authenticator`\n**Controller**: `AuthController`\n**Method**: `verifyOtp`\n**Request Body**: `VerifyOtpRequest`\n",
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"username\": \"burak_user\",\n  \"otpCode\": \"123456\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "POST - verifyTotpLogin (/api/v1/auth/totp/verify-login)",
+              "request": {
+                "method": "POST",
+                "header": [],
+                "url": {
+                  "raw": "{{base_url}}/api/v1/auth/totp/verify-login",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "auth",
+                    "totp",
+                    "verify-login"
+                  ],
+                  "query": [
+                    {
+                      "key": "code",
+                      "value": "123456",
+                      "description": "Type: String, Required: true"
+                    }
+                  ]
+                },
+                "description": "**Branch**: `2fa-google-authenticator`\n**Controller**: `AuthController`\n**Method**: `verifyTotpLogin`\n**Query Parameters**: `code`\n"
+              },
+              "response": []
+            },
+            {
+              "name": "POST - verifyRecoveryCode (/api/v1/auth/totp/verify-recovery)",
+              "request": {
+                "method": "POST",
+                "header": [],
+                "url": {
+                  "raw": "{{base_url}}/api/v1/auth/totp/verify-recovery",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "auth",
+                    "totp",
+                    "verify-recovery"
+                  ],
+                  "query": [
+                    {
+                      "key": "code",
+                      "value": "123456",
+                      "description": "Type: String, Required: true"
+                    }
+                  ]
+                },
+                "description": "**Branch**: `2fa-google-authenticator`\n**Controller**: `AuthController`\n**Method**: `verifyRecoveryCode`\n**Query Parameters**: `code`\n"
+              },
+              "response": []
+            }
+          ]
+        },
+        {
+          "name": "EmployeeController",
+          "item": [
+            {
+              "name": "GET - getAllEmployees (/api/v1/employees/all)",
+              "request": {
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{token}}",
+                    "description": "Requires authorization: hasRole('ADMIN')"
+                  }
+                ],
+                "url": {
+                  "raw": "{{base_url}}/api/v1/employees/all",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "employees",
+                    "all"
+                  ]
+                },
+                "description": "**Branch**: `2fa-google-authenticator`\n**Controller**: `EmployeeController`\n**Method**: `getAllEmployees`\n**Security (PreAuthorize)**: `hasRole('ADMIN')`\n"
+              },
+              "response": []
+            },
+            {
+              "name": "DELETE - deleteEmployee (/api/v1/employees/{id})",
+              "request": {
+                "method": "DELETE",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{token}}",
+                    "description": "Requires authorization: hasRole('ADMIN')"
+                  }
+                ],
+                "url": {
+                  "raw": "{{base_url}}/api/v1/employees/:id",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "employees",
+                    ":id"
+                  ],
+                  "variable": [
+                    {
+                      "key": "id",
+                      "value": "1",
+                      "description": "Path Parameter"
+                    }
+                  ]
+                },
+                "description": "**Branch**: `2fa-google-authenticator`\n**Controller**: `EmployeeController`\n**Method**: `deleteEmployee`\n**Security (PreAuthorize)**: `hasRole('ADMIN')`\n"
+              },
+              "response": []
+            },
+            {
+              "name": "GET - getEmployee (/api/v1/employees)",
+              "request": {
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{token}}",
+                    "description": "Requires authorization: hasAnyRole('ADMIN','USER')"
+                  }
+                ],
+                "url": {
+                  "raw": "{{base_url}}/api/v1/employees",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "employees"
+                  ]
+                },
+                "description": "**Branch**: `2fa-google-authenticator`\n**Controller**: `EmployeeController`\n**Method**: `getEmployee`\n**Security (PreAuthorize)**: `hasAnyRole('ADMIN','USER')`\n"
+              },
+              "response": []
+            },
+            {
+              "name": "PUT - updateEmployeeInformationAfterLogin (/api/v1/employees)",
+              "request": {
+                "method": "PUT",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{token}}",
+                    "description": "Requires authentication token"
+                  }
+                ],
+                "url": {
+                  "raw": "{{base_url}}/api/v1/employees",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "employees"
+                  ]
+                },
+                "description": "**Branch**: `2fa-google-authenticator`\n**Controller**: `EmployeeController`\n**Method**: `updateEmployeeInformationAfterLogin`\n**Request Body**: `EmployeeCreateRequest`\n",
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"username\": \"burak_user\",\n  \"firstName\": \"Burak\",\n  \"lastName\": \"Can\",\n  \"email\": \"user@example.com\",\n  \"tcNo\": \"12345678901\",\n  \"phoneNumber\": \"5551234567\",\n  \"birthDate\": \"1995-05-15\",\n  \"gender\": \"MALE\",\n  \"address\": \"Istanbul, Turkey\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              },
+              "response": []
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Branch: oath2-google",
+      "item": [
+        {
+          "name": "AuthController",
+          "item": [
+            {
+              "name": "POST - register (/api/v1/auth/register)",
+              "request": {
+                "method": "POST",
+                "header": [],
+                "url": {
+                  "raw": "{{base_url}}/api/v1/auth/register",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "auth",
+                    "register"
+                  ]
+                },
+                "description": "**Branch**: `oath2-google`\n**Controller**: `AuthController`\n**Method**: `register`\n**Request Body**: `EmployeeRegisterRequest`\n",
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"username\": \"burak_user\",\n  \"email\": \"user@example.com\",\n  \"phoneNumber\": \"5551234567\",\n  \"tcNo\": \"12345678901\",\n  \"password\": \"Password123!\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "POST - login (/api/v1/auth/login)",
+              "request": {
+                "method": "POST",
+                "header": [],
+                "url": {
+                  "raw": "{{base_url}}/api/v1/auth/login",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "auth",
+                    "login"
+                  ]
+                },
+                "description": "**Branch**: `oath2-google`\n**Controller**: `AuthController`\n**Method**: `login`\n**Request Body**: `EmployeeLoginRequest`\n",
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"username\": \"burak_user\",\n  \"password\": \"Password123!\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "POST - refresh (/api/v1/auth/refresh)",
+              "request": {
+                "method": "POST",
+                "header": [],
+                "url": {
+                  "raw": "{{base_url}}/api/v1/auth/refresh",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "auth",
+                    "refresh"
+                  ]
+                },
+                "description": "**Branch**: `oath2-google`\n**Controller**: `AuthController`\n**Method**: `refresh`\n**Request Body**: `RefreshTokenRequest`\n",
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"refreshToken\": \"sample_refresh_token_here\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "POST - logout (/api/v1/auth/logout)",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{token}}",
+                    "description": "Requires authentication token"
+                  }
+                ],
+                "url": {
+                  "raw": "{{base_url}}/api/v1/auth/logout",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "auth",
+                    "logout"
+                  ]
+                },
+                "description": "**Branch**: `oath2-google`\n**Controller**: `AuthController`\n**Method**: `logout`\n"
+              },
+              "response": []
+            },
+            {
+              "name": "DELETE - delete (/api/v1/auth/delete/{id})",
+              "request": {
+                "method": "DELETE",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{token}}",
+                    "description": "Requires authentication token"
+                  }
+                ],
+                "url": {
+                  "raw": "{{base_url}}/api/v1/auth/delete/:id",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "auth",
+                    "delete",
+                    ":id"
+                  ],
+                  "variable": [
+                    {
+                      "key": "id",
+                      "value": "1",
+                      "description": "Path Parameter"
+                    }
+                  ]
+                },
+                "description": "**Branch**: `oath2-google`\n**Controller**: `AuthController`\n**Method**: `delete`\n"
+              },
+              "response": []
+            },
+            {
+              "name": "GET - verifyEmail (/api/v1/auth/verify)",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{base_url}}/api/v1/auth/verify",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "auth",
+                    "verify"
+                  ],
+                  "query": [
+                    {
+                      "key": "token",
+                      "value": "sample_verification_token",
+                      "description": "Type: String, Required: true"
+                    }
+                  ]
+                },
+                "description": "**Branch**: `oath2-google`\n**Controller**: `AuthController`\n**Method**: `verifyEmail`\n**Query Parameters**: `token`\n"
+              },
+              "response": []
+            },
+            {
+              "name": "POST - forgotPassword (/api/v1/auth/forgot-password)",
+              "request": {
+                "method": "POST",
+                "header": [],
+                "url": {
+                  "raw": "{{base_url}}/api/v1/auth/forgot-password",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "auth",
+                    "forgot-password"
+                  ]
+                },
+                "description": "**Branch**: `oath2-google`\n**Controller**: `AuthController`\n**Method**: `forgotPassword`\n**Request Body**: `ForgotPasswordRequest`\n",
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"email\": \"user@example.com\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "POST - resetPassword (/api/v1/auth/reset-password)",
+              "request": {
+                "method": "POST",
+                "header": [],
+                "url": {
+                  "raw": "{{base_url}}/api/v1/auth/reset-password",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "auth",
+                    "reset-password"
+                  ],
+                  "query": [
+                    {
+                      "key": "token",
+                      "value": "sample_reset_token",
+                      "description": "Type: String, Required: true"
+                    }
+                  ]
+                },
+                "description": "**Branch**: `oath2-google`\n**Controller**: `AuthController`\n**Method**: `resetPassword`\n**Query Parameters**: `token`\n**Request Body**: `ResetPasswordRequest`\n",
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"newPassword\": \"NewPassword123!\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "POST - sendOtp (/api/v1/auth/send-otp)",
+              "request": {
+                "method": "POST",
+                "header": [],
+                "url": {
+                  "raw": "{{base_url}}/api/v1/auth/send-otp",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "auth",
+                    "send-otp"
+                  ]
+                },
+                "description": "**Branch**: `oath2-google`\n**Controller**: `AuthController`\n**Method**: `sendOtp`\n**Request Body**: `EmailOtpRequest`\n",
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"username\": \"burak_user\",\n  \"password\": \"Password123!\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "POST - verifyOtp (/api/v1/auth/verify-otp)",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{token}}",
+                    "description": "Requires authentication token"
+                  }
+                ],
+                "url": {
+                  "raw": "{{base_url}}/api/v1/auth/verify-otp",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "auth",
+                    "verify-otp"
+                  ]
+                },
+                "description": "**Branch**: `oath2-google`\n**Controller**: `AuthController`\n**Method**: `verifyOtp`\n**Request Body**: `VerifyOtpRequest`\n",
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"username\": \"burak_user\",\n  \"otpCode\": \"123456\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "POST - setupTotp (/api/v1/auth/totp/setup)",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{token}}",
+                    "description": "Requires authentication token"
+                  }
+                ],
+                "url": {
+                  "raw": "{{base_url}}/api/v1/auth/totp/setup",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "auth",
+                    "totp",
+                    "setup"
+                  ]
+                },
+                "description": "**Branch**: `oath2-google`\n**Controller**: `AuthController`\n**Method**: `setupTotp`\n"
+              },
+              "response": []
+            },
+            {
+              "name": "POST - enableTotp (/api/v1/auth/totp/enable)",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{token}}",
+                    "description": "Requires authentication token"
+                  }
+                ],
+                "url": {
+                  "raw": "{{base_url}}/api/v1/auth/totp/enable",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "auth",
+                    "totp",
+                    "enable"
+                  ],
+                  "query": [
+                    {
+                      "key": "code",
+                      "value": "123456",
+                      "description": "Type: String, Required: true"
+                    }
+                  ]
+                },
+                "description": "**Branch**: `oath2-google`\n**Controller**: `AuthController`\n**Method**: `enableTotp`\n**Query Parameters**: `code`\n"
+              },
+              "response": []
+            },
+            {
+              "name": "POST - verifyTotpLogin (/api/v1/auth/totp/verify-login)",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{token}}",
+                    "description": "Requires authentication token"
+                  }
+                ],
+                "url": {
+                  "raw": "{{base_url}}/api/v1/auth/totp/verify-login",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "auth",
+                    "totp",
+                    "verify-login"
+                  ],
+                  "query": [
+                    {
+                      "key": "code",
+                      "value": "123456",
+                      "description": "Type: String, Required: true"
+                    }
+                  ]
+                },
+                "description": "**Branch**: `oath2-google`\n**Controller**: `AuthController`\n**Method**: `verifyTotpLogin`\n**Query Parameters**: `code`\n"
+              },
+              "response": []
+            },
+            {
+              "name": "POST - setPassword (/api/v1/auth/set-password)",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{token}}",
+                    "description": "Requires authentication token"
+                  }
+                ],
+                "url": {
+                  "raw": "{{base_url}}/api/v1/auth/set-password",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "auth",
+                    "set-password"
+                  ],
+                  "query": [
+                    {
+                      "key": "newPassword",
+                      "value": "NewPassword123!",
+                      "description": "Type: String, Required: true"
+                    }
+                  ]
+                },
+                "description": "**Branch**: `oath2-google`\n**Controller**: `AuthController`\n**Method**: `setPassword`\n**Query Parameters**: `newPassword`\n"
+              },
+              "response": []
+            }
+          ]
+        },
+        {
+          "name": "EmployeeController",
+          "item": [
+            {
+              "name": "GET - getAllEmployees (/api/v1/employees/all)",
+              "request": {
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{token}}",
+                    "description": "Requires authorization: hasRole('ADMIN')"
+                  }
+                ],
+                "url": {
+                  "raw": "{{base_url}}/api/v1/employees/all",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "employees",
+                    "all"
+                  ]
+                },
+                "description": "**Branch**: `oath2-google`\n**Controller**: `EmployeeController`\n**Method**: `getAllEmployees`\n**Security (PreAuthorize)**: `hasRole('ADMIN')`\n"
+              },
+              "response": []
+            },
+            {
+              "name": "DELETE - deleteEmployee (/api/v1/employees/{id})",
+              "request": {
+                "method": "DELETE",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{token}}",
+                    "description": "Requires authorization: hasRole('ADMIN')"
+                  }
+                ],
+                "url": {
+                  "raw": "{{base_url}}/api/v1/employees/:id",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "employees",
+                    ":id"
+                  ],
+                  "variable": [
+                    {
+                      "key": "id",
+                      "value": "1",
+                      "description": "Path Parameter"
+                    }
+                  ]
+                },
+                "description": "**Branch**: `oath2-google`\n**Controller**: `EmployeeController`\n**Method**: `deleteEmployee`\n**Security (PreAuthorize)**: `hasRole('ADMIN')`\n"
+              },
+              "response": []
+            },
+            {
+              "name": "GET - getEmployee (/api/v1/employees)",
+              "request": {
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{token}}",
+                    "description": "Requires authorization: hasAnyRole('ADMIN','USER')"
+                  }
+                ],
+                "url": {
+                  "raw": "{{base_url}}/api/v1/employees",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "employees"
+                  ]
+                },
+                "description": "**Branch**: `oath2-google`\n**Controller**: `EmployeeController`\n**Method**: `getEmployee`\n**Security (PreAuthorize)**: `hasAnyRole('ADMIN','USER')`\n"
+              },
+              "response": []
+            },
+            {
+              "name": "PUT - updateEmployeeInformationAfterLogin (/api/v1/employees)",
+              "request": {
+                "method": "PUT",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{token}}",
+                    "description": "Requires authentication token"
+                  }
+                ],
+                "url": {
+                  "raw": "{{base_url}}/api/v1/employees",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "employees"
+                  ]
+                },
+                "description": "**Branch**: `oath2-google`\n**Controller**: `EmployeeController`\n**Method**: `updateEmployeeInformationAfterLogin`\n**Request Body**: `EmployeeCreateRequest`\n",
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"username\": \"burak_user\",\n  \"firstName\": \"Burak\",\n  \"lastName\": \"Can\",\n  \"email\": \"user@example.com\",\n  \"tcNo\": \"12345678901\",\n  \"phoneNumber\": \"5551234567\",\n  \"birthDate\": \"1995-05-15\",\n  \"gender\": \"MALE\",\n  \"address\": \"Istanbul, Turkey\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              },
+              "response": []
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Branch: token-blacklist",
+      "item": [
+        {
+          "name": "AuthController",
+          "item": [
+            {
+              "name": "POST - register (/api/v1/auth/register)",
+              "request": {
+                "method": "POST",
+                "header": [],
+                "url": {
+                  "raw": "{{base_url}}/api/v1/auth/register",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "auth",
+                    "register"
+                  ]
+                },
+                "description": "**Branch**: `token-blacklist`\n**Controller**: `AuthController`\n**Method**: `register`\n**Request Body**: `EmployeeRegisterRequest`\n",
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"username\": \"burak_user\",\n  \"email\": \"user@example.com\",\n  \"phoneNumber\": \"5551234567\",\n  \"tcNo\": \"12345678901\",\n  \"password\": \"Password123!\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "POST - login (/api/v1/auth/login)",
+              "request": {
+                "method": "POST",
+                "header": [],
+                "url": {
+                  "raw": "{{base_url}}/api/v1/auth/login",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "auth",
+                    "login"
+                  ]
+                },
+                "description": "**Branch**: `token-blacklist`\n**Controller**: `AuthController`\n**Method**: `login`\n**Request Body**: `EmployeeLoginRequest`\n",
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"username\": \"burak_user\",\n  \"password\": \"Password123!\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "POST - refresh (/api/v1/auth/refresh)",
+              "request": {
+                "method": "POST",
+                "header": [],
+                "url": {
+                  "raw": "{{base_url}}/api/v1/auth/refresh",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "auth",
+                    "refresh"
+                  ]
+                },
+                "description": "**Branch**: `token-blacklist`\n**Controller**: `AuthController`\n**Method**: `refresh`\n**Request Body**: `RefreshTokenRequest`\n",
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"refreshToken\": \"sample_refresh_token_here\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "POST - logout (/api/v1/auth/logout)",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{token}}",
+                    "description": "Requires authentication token"
+                  }
+                ],
+                "url": {
+                  "raw": "{{base_url}}/api/v1/auth/logout",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "auth",
+                    "logout"
+                  ]
+                },
+                "description": "**Branch**: `token-blacklist`\n**Controller**: `AuthController`\n**Method**: `logout`\n"
+              },
+              "response": []
+            },
+            {
+              "name": "DELETE - delete (/api/v1/auth/delete/{id})",
+              "request": {
+                "method": "DELETE",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{token}}",
+                    "description": "Requires authentication token"
+                  }
+                ],
+                "url": {
+                  "raw": "{{base_url}}/api/v1/auth/delete/:id",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "auth",
+                    "delete",
+                    ":id"
+                  ],
+                  "variable": [
+                    {
+                      "key": "id",
+                      "value": "1",
+                      "description": "Path Parameter"
+                    }
+                  ]
+                },
+                "description": "**Branch**: `token-blacklist`\n**Controller**: `AuthController`\n**Method**: `delete`\n"
+              },
+              "response": []
+            },
+            {
+              "name": "GET - verifyEmail (/api/v1/auth/verify)",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{base_url}}/api/v1/auth/verify",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "auth",
+                    "verify"
+                  ],
+                  "query": [
+                    {
+                      "key": "token",
+                      "value": "sample_verification_token",
+                      "description": "Type: String, Required: true"
+                    }
+                  ]
+                },
+                "description": "**Branch**: `token-blacklist`\n**Controller**: `AuthController`\n**Method**: `verifyEmail`\n**Query Parameters**: `token`\n"
+              },
+              "response": []
+            },
+            {
+              "name": "POST - forgotPassword (/api/v1/auth/forgot-password)",
+              "request": {
+                "method": "POST",
+                "header": [],
+                "url": {
+                  "raw": "{{base_url}}/api/v1/auth/forgot-password",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "auth",
+                    "forgot-password"
+                  ]
+                },
+                "description": "**Branch**: `token-blacklist`\n**Controller**: `AuthController`\n**Method**: `forgotPassword`\n**Request Body**: `ForgotPasswordRequest`\n",
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"email\": \"user@example.com\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "POST - resetPassword (/api/v1/auth/reset-password)",
+              "request": {
+                "method": "POST",
+                "header": [],
+                "url": {
+                  "raw": "{{base_url}}/api/v1/auth/reset-password",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "auth",
+                    "reset-password"
+                  ],
+                  "query": [
+                    {
+                      "key": "token",
+                      "value": "sample_reset_token",
+                      "description": "Type: String, Required: true"
+                    }
+                  ]
+                },
+                "description": "**Branch**: `token-blacklist`\n**Controller**: `AuthController`\n**Method**: `resetPassword`\n**Query Parameters**: `token`\n**Request Body**: `ResetPasswordRequest`\n",
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"newPassword\": \"NewPassword123!\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "POST - sendOtp (/api/v1/auth/send-otp)",
+              "request": {
+                "method": "POST",
+                "header": [],
+                "url": {
+                  "raw": "{{base_url}}/api/v1/auth/send-otp",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "auth",
+                    "send-otp"
+                  ]
+                },
+                "description": "**Branch**: `token-blacklist`\n**Controller**: `AuthController`\n**Method**: `sendOtp`\n**Request Body**: `EmailOtpRequest`\n",
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"username\": \"burak_user\",\n  \"password\": \"Password123!\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "POST - verifyOtp (/api/v1/auth/verify-otp)",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{token}}",
+                    "description": "Requires authentication token"
+                  }
+                ],
+                "url": {
+                  "raw": "{{base_url}}/api/v1/auth/verify-otp",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "auth",
+                    "verify-otp"
+                  ]
+                },
+                "description": "**Branch**: `token-blacklist`\n**Controller**: `AuthController`\n**Method**: `verifyOtp`\n**Request Body**: `VerifyOtpRequest`\n",
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"username\": \"burak_user\",\n  \"otpCode\": \"123456\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "POST - setupTotp (/api/v1/auth/totp/setup)",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{token}}",
+                    "description": "Requires authentication token"
+                  }
+                ],
+                "url": {
+                  "raw": "{{base_url}}/api/v1/auth/totp/setup",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "auth",
+                    "totp",
+                    "setup"
+                  ]
+                },
+                "description": "**Branch**: `token-blacklist`\n**Controller**: `AuthController`\n**Method**: `setupTotp`\n"
+              },
+              "response": []
+            },
+            {
+              "name": "POST - enableTotp (/api/v1/auth/totp/enable)",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{token}}",
+                    "description": "Requires authentication token"
+                  }
+                ],
+                "url": {
+                  "raw": "{{base_url}}/api/v1/auth/totp/enable",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "auth",
+                    "totp",
+                    "enable"
+                  ],
+                  "query": [
+                    {
+                      "key": "code",
+                      "value": "123456",
+                      "description": "Type: String, Required: true"
+                    }
+                  ]
+                },
+                "description": "**Branch**: `token-blacklist`\n**Controller**: `AuthController`\n**Method**: `enableTotp`\n**Query Parameters**: `code`\n"
+              },
+              "response": []
+            },
+            {
+              "name": "POST - verifyTotpLogin (/api/v1/auth/totp/verify-login)",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{token}}",
+                    "description": "Requires authentication token"
+                  }
+                ],
+                "url": {
+                  "raw": "{{base_url}}/api/v1/auth/totp/verify-login",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "auth",
+                    "totp",
+                    "verify-login"
+                  ],
+                  "query": [
+                    {
+                      "key": "code",
+                      "value": "123456",
+                      "description": "Type: String, Required: true"
+                    }
+                  ]
+                },
+                "description": "**Branch**: `token-blacklist`\n**Controller**: `AuthController`\n**Method**: `verifyTotpLogin`\n**Query Parameters**: `code`\n"
+              },
+              "response": []
+            },
+            {
+              "name": "POST - setPassword (/api/v1/auth/set-password)",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{token}}",
+                    "description": "Requires authentication token"
+                  }
+                ],
+                "url": {
+                  "raw": "{{base_url}}/api/v1/auth/set-password",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "auth",
+                    "set-password"
+                  ],
+                  "query": [
+                    {
+                      "key": "newPassword",
+                      "value": "NewPassword123!",
+                      "description": "Type: String, Required: true"
+                    }
+                  ]
+                },
+                "description": "**Branch**: `token-blacklist`\n**Controller**: `AuthController`\n**Method**: `setPassword`\n**Query Parameters**: `newPassword`\n"
+              },
+              "response": []
+            }
+          ]
+        },
+        {
+          "name": "EmployeeController",
+          "item": [
+            {
+              "name": "GET - getAllEmployees (/api/v1/employees/all)",
+              "request": {
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{token}}",
+                    "description": "Requires authorization: hasRole('ADMIN')"
+                  }
+                ],
+                "url": {
+                  "raw": "{{base_url}}/api/v1/employees/all",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "employees",
+                    "all"
+                  ]
+                },
+                "description": "**Branch**: `token-blacklist`\n**Controller**: `EmployeeController`\n**Method**: `getAllEmployees`\n**Security (PreAuthorize)**: `hasRole('ADMIN')`\n"
+              },
+              "response": []
+            },
+            {
+              "name": "DELETE - deleteEmployee (/api/v1/employees/{id})",
+              "request": {
+                "method": "DELETE",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{token}}",
+                    "description": "Requires authorization: hasRole('ADMIN')"
+                  }
+                ],
+                "url": {
+                  "raw": "{{base_url}}/api/v1/employees/:id",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "employees",
+                    ":id"
+                  ],
+                  "variable": [
+                    {
+                      "key": "id",
+                      "value": "1",
+                      "description": "Path Parameter"
+                    }
+                  ]
+                },
+                "description": "**Branch**: `token-blacklist`\n**Controller**: `EmployeeController`\n**Method**: `deleteEmployee`\n**Security (PreAuthorize)**: `hasRole('ADMIN')`\n"
+              },
+              "response": []
+            },
+            {
+              "name": "GET - getEmployee (/api/v1/employees)",
+              "request": {
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{token}}",
+                    "description": "Requires authorization: hasAnyRole('ADMIN','USER')"
+                  }
+                ],
+                "url": {
+                  "raw": "{{base_url}}/api/v1/employees",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "employees"
+                  ]
+                },
+                "description": "**Branch**: `token-blacklist`\n**Controller**: `EmployeeController`\n**Method**: `getEmployee`\n**Security (PreAuthorize)**: `hasAnyRole('ADMIN','USER')`\n"
+              },
+              "response": []
+            },
+            {
+              "name": "PUT - updateEmployeeInformationAfterLogin (/api/v1/employees)",
+              "request": {
+                "method": "PUT",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{token}}",
+                    "description": "Requires authentication token"
+                  }
+                ],
+                "url": {
+                  "raw": "{{base_url}}/api/v1/employees",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "employees"
+                  ]
+                },
+                "description": "**Branch**: `token-blacklist`\n**Controller**: `EmployeeController`\n**Method**: `updateEmployeeInformationAfterLogin`\n**Request Body**: `EmployeeCreateRequest`\n",
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"username\": \"burak_user\",\n  \"firstName\": \"Burak\",\n  \"lastName\": \"Can\",\n  \"email\": \"user@example.com\",\n  \"tcNo\": \"12345678901\",\n  \"phoneNumber\": \"5551234567\",\n  \"birthDate\": \"1995-05-15\",\n  \"gender\": \"MALE\",\n  \"address\": \"Istanbul, Turkey\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              },
+              "response": []
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Branch: cookie-csrf-security",
+      "item": [
+        {
+          "name": "AuthController",
+          "item": [
+            {
+              "name": "POST - register (/api/v1/auth/register)",
+              "request": {
+                "method": "POST",
+                "header": [],
+                "url": {
+                  "raw": "{{base_url}}/api/v1/auth/register",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "auth",
+                    "register"
+                  ]
+                },
+                "description": "**Branch**: `cookie-csrf-security`\n**Controller**: `AuthController`\n**Method**: `register`\n**Request Body**: `EmployeeRegisterRequest`\n",
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"username\": \"burak_user\",\n  \"email\": \"user@example.com\",\n  \"phoneNumber\": \"5551234567\",\n  \"tcNo\": \"12345678901\",\n  \"password\": \"Password123!\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "POST - login (/api/v1/auth/login)",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "X-XSRF-TOKEN",
+                    "value": "{{xsrf_token}}",
+                    "description": "CSRF Token for cookie session security"
+                  }
+                ],
+                "url": {
+                  "raw": "{{base_url}}/api/v1/auth/login",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "auth",
+                    "login"
+                  ]
+                },
+                "description": "**Branch**: `cookie-csrf-security`\n**Controller**: `AuthController`\n**Method**: `login`\n**Request Body**: `EmployeeLoginRequest`\n",
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"username\": \"burak_user\",\n  \"password\": \"Password123!\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "POST - refresh (/api/v1/auth/refresh)",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Cookie",
+                    "value": "refreshToken={{refreshToken}}",
+                    "description": "HTTP-Only Refresh Token Cookie"
+                  }
+                ],
+                "url": {
+                  "raw": "{{base_url}}/api/v1/auth/refresh",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "auth",
+                    "refresh"
+                  ]
+                },
+                "description": "**Branch**: `cookie-csrf-security`\n**Controller**: `AuthController`\n**Method**: `refresh`\n"
+              },
+              "response": []
+            },
+            {
+              "name": "POST - logout (/api/v1/auth/logout)",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Cookie",
+                    "value": "accessToken={{accessToken}}",
+                    "description": "HTTP-Only Access Token Cookie"
+                  }
+                ],
+                "url": {
+                  "raw": "{{base_url}}/api/v1/auth/logout",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "auth",
+                    "logout"
+                  ]
+                },
+                "description": "**Branch**: `cookie-csrf-security`\n**Controller**: `AuthController`\n**Method**: `logout`\n"
+              },
+              "response": []
+            },
+            {
+              "name": "GET - verifyEmail (/api/v1/auth/verify)",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{base_url}}/api/v1/auth/verify",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "auth",
+                    "verify"
+                  ],
+                  "query": [
+                    {
+                      "key": "token",
+                      "value": "sample_verification_token",
+                      "description": "Type: String, Required: true"
+                    }
+                  ]
+                },
+                "description": "**Branch**: `cookie-csrf-security`\n**Controller**: `AuthController`\n**Method**: `verifyEmail`\n**Query Parameters**: `token`\n"
+              },
+              "response": []
+            },
+            {
+              "name": "POST - forgotPassword (/api/v1/auth/forgot-password)",
+              "request": {
+                "method": "POST",
+                "header": [],
+                "url": {
+                  "raw": "{{base_url}}/api/v1/auth/forgot-password",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "auth",
+                    "forgot-password"
+                  ]
+                },
+                "description": "**Branch**: `cookie-csrf-security`\n**Controller**: `AuthController`\n**Method**: `forgotPassword`\n**Request Body**: `ForgotPasswordRequest`\n",
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"email\": \"user@example.com\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "POST - resetPassword (/api/v1/auth/reset-password)",
+              "request": {
+                "method": "POST",
+                "header": [],
+                "url": {
+                  "raw": "{{base_url}}/api/v1/auth/reset-password",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "auth",
+                    "reset-password"
+                  ],
+                  "query": [
+                    {
+                      "key": "token",
+                      "value": "sample_reset_token",
+                      "description": "Type: String, Required: true"
+                    }
+                  ]
+                },
+                "description": "**Branch**: `cookie-csrf-security`\n**Controller**: `AuthController`\n**Method**: `resetPassword`\n**Query Parameters**: `token`\n**Request Body**: `ResetPasswordRequest`\n",
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"newPassword\": \"NewPassword123!\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              },
+              "response": []
+            }
+          ]
+        },
+        {
+          "name": "EmployeeController",
+          "item": [
+            {
+              "name": "GET - getAllEmployees (/api/v1/employees/all)",
+              "request": {
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{token}}",
+                    "description": "Requires authentication token"
+                  }
+                ],
+                "url": {
+                  "raw": "{{base_url}}/api/v1/employees/all",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "employees",
+                    "all"
+                  ]
+                },
+                "description": "**Branch**: `cookie-csrf-security`\n**Controller**: `EmployeeController`\n**Method**: `getAllEmployees`\n"
+              },
+              "response": []
+            },
+            {
+              "name": "DELETE - deleteEmployee (/api/v1/employees/{id})",
+              "request": {
+                "method": "DELETE",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{token}}",
+                    "description": "Requires authentication token"
+                  }
+                ],
+                "url": {
+                  "raw": "{{base_url}}/api/v1/employees/:id",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "employees",
+                    ":id"
+                  ],
+                  "variable": [
+                    {
+                      "key": "id",
+                      "value": "1",
+                      "description": "Path Parameter"
+                    }
+                  ]
+                },
+                "description": "**Branch**: `cookie-csrf-security`\n**Controller**: `EmployeeController`\n**Method**: `deleteEmployee`\n"
+              },
+              "response": []
+            },
+            {
+              "name": "GET - getEmployee (/api/v1/employees)",
+              "request": {
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{token}}",
+                    "description": "Requires authorization: hasAnyRole('ADMIN','USER')"
+                  }
+                ],
+                "url": {
+                  "raw": "{{base_url}}/api/v1/employees",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "employees"
+                  ]
+                },
+                "description": "**Branch**: `cookie-csrf-security`\n**Controller**: `EmployeeController`\n**Method**: `getEmployee`\n**Security (PreAuthorize)**: `hasAnyRole('ADMIN','USER')`\n"
+              },
+              "response": []
+            },
+            {
+              "name": "PUT - updateEmployeeInformationAfterLogin (/api/v1/employees)",
+              "request": {
+                "method": "PUT",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{token}}",
+                    "description": "Requires authentication token"
+                  }
+                ],
+                "url": {
+                  "raw": "{{base_url}}/api/v1/employees",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "employees"
+                  ]
+                },
+                "description": "**Branch**: `cookie-csrf-security`\n**Controller**: `EmployeeController`\n**Method**: `updateEmployeeInformationAfterLogin`\n**Request Body**: `EmployeeCreateRequest`\n",
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"username\": \"burak_user\",\n  \"firstName\": \"Burak\",\n  \"lastName\": \"Can\",\n  \"email\": \"user@example.com\",\n  \"tcNo\": \"12345678901\",\n  \"phoneNumber\": \"5551234567\",\n  \"birthDate\": \"1995-05-15\",\n  \"gender\": \"MALE\",\n  \"address\": \"Istanbul, Turkey\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              },
+              "response": []
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Branch: custom-permission-evaluator",
+      "item": [
+        {
+          "name": "AuthController",
+          "item": [
+            {
+              "name": "POST - register (/api/v1/auth/register)",
+              "request": {
+                "method": "POST",
+                "header": [],
+                "url": {
+                  "raw": "{{base_url}}/api/v1/auth/register",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "auth",
+                    "register"
+                  ]
+                },
+                "description": "**Branch**: `custom-permission-evaluator`\n**Controller**: `AuthController`\n**Method**: `register`\n**Request Body**: `EmployeeRegisterRequest`\n",
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"username\": \"burak_user\",\n  \"email\": \"user@example.com\",\n  \"phoneNumber\": \"5551234567\",\n  \"tcNo\": \"12345678901\",\n  \"password\": \"Password123!\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "POST - login (/api/v1/auth/login)",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "X-XSRF-TOKEN",
+                    "value": "{{xsrf_token}}",
+                    "description": "CSRF Token for cookie session security"
+                  }
+                ],
+                "url": {
+                  "raw": "{{base_url}}/api/v1/auth/login",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "auth",
+                    "login"
+                  ]
+                },
+                "description": "**Branch**: `custom-permission-evaluator`\n**Controller**: `AuthController`\n**Method**: `login`\n**Request Body**: `EmployeeLoginRequest`\n",
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"username\": \"burak_user\",\n  \"password\": \"Password123!\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "POST - refresh (/api/v1/auth/refresh)",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Cookie",
+                    "value": "refreshToken={{refreshToken}}",
+                    "description": "HTTP-Only Refresh Token Cookie"
+                  }
+                ],
+                "url": {
+                  "raw": "{{base_url}}/api/v1/auth/refresh",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "auth",
+                    "refresh"
+                  ]
+                },
+                "description": "**Branch**: `custom-permission-evaluator`\n**Controller**: `AuthController`\n**Method**: `refresh`\n"
+              },
+              "response": []
+            },
+            {
+              "name": "POST - logout (/api/v1/auth/logout)",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Cookie",
+                    "value": "accessToken={{accessToken}}",
+                    "description": "HTTP-Only Access Token Cookie"
+                  }
+                ],
+                "url": {
+                  "raw": "{{base_url}}/api/v1/auth/logout",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "auth",
+                    "logout"
+                  ]
+                },
+                "description": "**Branch**: `custom-permission-evaluator`\n**Controller**: `AuthController`\n**Method**: `logout`\n"
+              },
+              "response": []
+            },
+            {
+              "name": "GET - verifyEmail (/api/v1/auth/verify)",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{base_url}}/api/v1/auth/verify",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "auth",
+                    "verify"
+                  ],
+                  "query": [
+                    {
+                      "key": "token",
+                      "value": "sample_verification_token",
+                      "description": "Type: String, Required: true"
+                    }
+                  ]
+                },
+                "description": "**Branch**: `custom-permission-evaluator`\n**Controller**: `AuthController`\n**Method**: `verifyEmail`\n**Query Parameters**: `token`\n"
+              },
+              "response": []
+            },
+            {
+              "name": "POST - forgotPassword (/api/v1/auth/forgot-password)",
+              "request": {
+                "method": "POST",
+                "header": [],
+                "url": {
+                  "raw": "{{base_url}}/api/v1/auth/forgot-password",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "auth",
+                    "forgot-password"
+                  ]
+                },
+                "description": "**Branch**: `custom-permission-evaluator`\n**Controller**: `AuthController`\n**Method**: `forgotPassword`\n**Request Body**: `ForgotPasswordRequest`\n",
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"email\": \"user@example.com\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "POST - resetPassword (/api/v1/auth/reset-password)",
+              "request": {
+                "method": "POST",
+                "header": [],
+                "url": {
+                  "raw": "{{base_url}}/api/v1/auth/reset-password",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "auth",
+                    "reset-password"
+                  ],
+                  "query": [
+                    {
+                      "key": "token",
+                      "value": "sample_reset_token",
+                      "description": "Type: String, Required: true"
+                    }
+                  ]
+                },
+                "description": "**Branch**: `custom-permission-evaluator`\n**Controller**: `AuthController`\n**Method**: `resetPassword`\n**Query Parameters**: `token`\n**Request Body**: `ResetPasswordRequest`\n",
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"newPassword\": \"NewPassword123!\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              },
+              "response": []
+            }
+          ]
+        },
+        {
+          "name": "EmployeeController",
+          "item": [
+            {
+              "name": "GET - getAllEmployees (/api/v1/employees/all)",
+              "request": {
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{token}}",
+                    "description": "Requires authentication token"
+                  }
+                ],
+                "url": {
+                  "raw": "{{base_url}}/api/v1/employees/all",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "employees",
+                    "all"
+                  ]
+                },
+                "description": "**Branch**: `custom-permission-evaluator`\n**Controller**: `EmployeeController`\n**Method**: `getAllEmployees`\n"
+              },
+              "response": []
+            },
+            {
+              "name": "DELETE - deleteEmployee (/api/v1/employees/{id})",
+              "request": {
+                "method": "DELETE",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{token}}",
+                    "description": "Requires authentication token"
+                  }
+                ],
+                "url": {
+                  "raw": "{{base_url}}/api/v1/employees/:id",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "employees",
+                    ":id"
+                  ],
+                  "variable": [
+                    {
+                      "key": "id",
+                      "value": "1",
+                      "description": "Path Parameter"
+                    }
+                  ]
+                },
+                "description": "**Branch**: `custom-permission-evaluator`\n**Controller**: `EmployeeController`\n**Method**: `deleteEmployee`\n"
+              },
+              "response": []
+            },
+            {
+              "name": "GET - getEmployee (/api/v1/employees)",
+              "request": {
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{token}}",
+                    "description": "Requires authorization: hasAnyRole('ADMIN','USER')"
+                  }
+                ],
+                "url": {
+                  "raw": "{{base_url}}/api/v1/employees",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "employees"
+                  ]
+                },
+                "description": "**Branch**: `custom-permission-evaluator`\n**Controller**: `EmployeeController`\n**Method**: `getEmployee`\n**Security (PreAuthorize)**: `hasAnyRole('ADMIN','USER')`\n"
+              },
+              "response": []
+            },
+            {
+              "name": "PUT - updateEmployeeInformationAfterLogin (/api/v1/employees)",
+              "request": {
+                "method": "PUT",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{token}}",
+                    "description": "Requires authentication token"
+                  }
+                ],
+                "url": {
+                  "raw": "{{base_url}}/api/v1/employees",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "employees"
+                  ]
+                },
+                "description": "**Branch**: `custom-permission-evaluator`\n**Controller**: `EmployeeController`\n**Method**: `updateEmployeeInformationAfterLogin`\n**Request Body**: `EmployeeCreateRequest`\n",
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"username\": \"burak_user\",\n  \"firstName\": \"Burak\",\n  \"lastName\": \"Can\",\n  \"email\": \"user@example.com\",\n  \"tcNo\": \"12345678901\",\n  \"phoneNumber\": \"5551234567\",\n  \"birthDate\": \"1995-05-15\",\n  \"gender\": \"MALE\",\n  \"address\": \"Istanbul, Turkey\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              },
+              "response": []
+            }
+          ]
+        },
+        {
+          "name": "LeaveRequestController",
+          "item": [
+            {
+              "name": "POST - create (/api/v1/leave-requests)",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{token}}",
+                    "description": "Requires authentication token"
+                  }
+                ],
+                "url": {
+                  "raw": "{{base_url}}/api/v1/leave-requests",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "leave-requests"
+                  ]
+                },
+                "description": "**Branch**: `custom-permission-evaluator`\n**Controller**: `LeaveRequestController`\n**Method**: `create`\n**Request Body**: `LeaveRequestCreateRequest`\n",
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"startDate\": \"2026-08-01\",\n  \"endDate\": \"2026-08-10\",\n  \"reason\": \"Annual Vacation Leave\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "GET - getById (/api/v1/leave-requests/{id})",
+              "request": {
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{token}}",
+                    "description": "Requires authorization: hasPermission(#id, 'LeaveRequest', 'READ')"
+                  }
+                ],
+                "url": {
+                  "raw": "{{base_url}}/api/v1/leave-requests/:id",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "leave-requests",
+                    ":id"
+                  ],
+                  "variable": [
+                    {
+                      "key": "id",
+                      "value": "1",
+                      "description": "Path Parameter"
+                    }
+                  ]
+                },
+                "description": "**Branch**: `custom-permission-evaluator`\n**Controller**: `LeaveRequestController`\n**Method**: `getById`\n**Security (PreAuthorize)**: `hasPermission(#id, 'LeaveRequest', 'READ')`\n"
+              },
+              "response": []
+            },
+            {
+              "name": "GET - getMyLeaveRequests (/api/v1/leave-requests/my)",
+              "request": {
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{token}}",
+                    "description": "Requires authentication token"
+                  }
+                ],
+                "url": {
+                  "raw": "{{base_url}}/api/v1/leave-requests/my",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "leave-requests",
+                    "my"
+                  ]
+                },
+                "description": "**Branch**: `custom-permission-evaluator`\n**Controller**: `LeaveRequestController`\n**Method**: `getMyLeaveRequests`\n"
+              },
+              "response": []
+            },
+            {
+              "name": "GET - getAll (/api/v1/leave-requests)",
+              "request": {
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{token}}",
+                    "description": "Requires authorization: hasRole('ADMIN')"
+                  }
+                ],
+                "url": {
+                  "raw": "{{base_url}}/api/v1/leave-requests",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "leave-requests"
+                  ]
+                },
+                "description": "**Branch**: `custom-permission-evaluator`\n**Controller**: `LeaveRequestController`\n**Method**: `getAll`\n**Security (PreAuthorize)**: `hasRole('ADMIN')`\n"
+              },
+              "response": []
+            },
+            {
+              "name": "POST - approve (/api/v1/leave-requests/{id}/approve)",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{token}}",
+                    "description": "Requires authorization: hasPermission(#id, 'LeaveRequest', 'APPROVE')"
+                  }
+                ],
+                "url": {
+                  "raw": "{{base_url}}/api/v1/leave-requests/:id/approve",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "leave-requests",
+                    ":id",
+                    "approve"
+                  ],
+                  "variable": [
+                    {
+                      "key": "id",
+                      "value": "1",
+                      "description": "Path Parameter"
+                    }
+                  ]
+                },
+                "description": "**Branch**: `custom-permission-evaluator`\n**Controller**: `LeaveRequestController`\n**Method**: `approve`\n**Security (PreAuthorize)**: `hasPermission(#id, 'LeaveRequest', 'APPROVE')`\n"
+              },
+              "response": []
+            },
+            {
+              "name": "POST - reject (/api/v1/leave-requests/{id}/reject)",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{token}}",
+                    "description": "Requires authorization: hasPermission(#id, 'LeaveRequest', 'APPROVE')"
+                  }
+                ],
+                "url": {
+                  "raw": "{{base_url}}/api/v1/leave-requests/:id/reject",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "leave-requests",
+                    ":id",
+                    "reject"
+                  ],
+                  "variable": [
+                    {
+                      "key": "id",
+                      "value": "1",
+                      "description": "Path Parameter"
+                    }
+                  ]
+                },
+                "description": "**Branch**: `custom-permission-evaluator`\n**Controller**: `LeaveRequestController`\n**Method**: `reject`\n**Security (PreAuthorize)**: `hasPermission(#id, 'LeaveRequest', 'APPROVE')`\n"
+              },
+              "response": []
+            },
+            {
+              "name": "DELETE - delete (/api/v1/leave-requests/{id})",
+              "request": {
+                "method": "DELETE",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{token}}",
+                    "description": "Requires authorization: hasPermission(#id, 'LeaveRequest', 'DELETE')"
+                  }
+                ],
+                "url": {
+                  "raw": "{{base_url}}/api/v1/leave-requests/:id",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "leave-requests",
+                    ":id"
+                  ],
+                  "variable": [
+                    {
+                      "key": "id",
+                      "value": "1",
+                      "description": "Path Parameter"
+                    }
+                  ]
+                },
+                "description": "**Branch**: `custom-permission-evaluator`\n**Controller**: `LeaveRequestController`\n**Method**: `delete`\n**Security (PreAuthorize)**: `hasPermission(#id, 'LeaveRequest', 'DELETE')`\n"
+              },
+              "response": []
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Branch: rate-limiting",
+      "item": [
+        {
+          "name": "AuthController",
+          "item": [
+            {
+              "name": "POST - register (/api/v1/auth/register)",
+              "request": {
+                "method": "POST",
+                "header": [],
+                "url": {
+                  "raw": "{{base_url}}/api/v1/auth/register",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "auth",
+                    "register"
+                  ]
+                },
+                "description": "**Branch**: `rate-limiting`\n**Controller**: `AuthController`\n**Method**: `register`\n**Request Body**: `EmployeeRegisterRequest`\n",
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"username\": \"burak_user\",\n  \"email\": \"user@example.com\",\n  \"phoneNumber\": \"5551234567\",\n  \"tcNo\": \"12345678901\",\n  \"password\": \"Password123!\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "POST - login (/api/v1/auth/login)",
+              "request": {
+                "method": "POST",
+                "header": [],
+                "url": {
+                  "raw": "{{base_url}}/api/v1/auth/login",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "auth",
+                    "login"
+                  ]
+                },
+                "description": "**Branch**: `rate-limiting`\n**Controller**: `AuthController`\n**Method**: `login`\n**Request Body**: `EmployeeLoginRequest`\n",
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"username\": \"burak_user\",\n  \"password\": \"Password123!\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "POST - refresh (/api/v1/auth/refresh)",
+              "request": {
+                "method": "POST",
+                "header": [],
+                "url": {
+                  "raw": "{{base_url}}/api/v1/auth/refresh",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "auth",
+                    "refresh"
+                  ]
+                },
+                "description": "**Branch**: `rate-limiting`\n**Controller**: `AuthController`\n**Method**: `refresh`\n**Request Body**: `RefreshTokenRequest`\n",
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"refreshToken\": \"sample_refresh_token_here\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "POST - logout (/api/v1/auth/logout)",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{token}}",
+                    "description": "Requires authentication token"
+                  }
+                ],
+                "url": {
+                  "raw": "{{base_url}}/api/v1/auth/logout",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "auth",
+                    "logout"
+                  ]
+                },
+                "description": "**Branch**: `rate-limiting`\n**Controller**: `AuthController`\n**Method**: `logout`\n"
+              },
+              "response": []
+            },
+            {
+              "name": "DELETE - delete (/api/v1/auth/delete/{id})",
+              "request": {
+                "method": "DELETE",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{token}}",
+                    "description": "Requires authentication token"
+                  }
+                ],
+                "url": {
+                  "raw": "{{base_url}}/api/v1/auth/delete/:id",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "auth",
+                    "delete",
+                    ":id"
+                  ],
+                  "variable": [
+                    {
+                      "key": "id",
+                      "value": "1",
+                      "description": "Path Parameter"
+                    }
+                  ]
+                },
+                "description": "**Branch**: `rate-limiting`\n**Controller**: `AuthController`\n**Method**: `delete`\n"
+              },
+              "response": []
+            },
+            {
+              "name": "GET - verifyEmail (/api/v1/auth/verify)",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{base_url}}/api/v1/auth/verify",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "auth",
+                    "verify"
+                  ],
+                  "query": [
+                    {
+                      "key": "token",
+                      "value": "sample_verification_token",
+                      "description": "Type: String, Required: true"
+                    }
+                  ]
+                },
+                "description": "**Branch**: `rate-limiting`\n**Controller**: `AuthController`\n**Method**: `verifyEmail`\n**Query Parameters**: `token`\n"
+              },
+              "response": []
+            },
+            {
+              "name": "POST - forgotPassword (/api/v1/auth/forgot-password)",
+              "request": {
+                "method": "POST",
+                "header": [],
+                "url": {
+                  "raw": "{{base_url}}/api/v1/auth/forgot-password",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "auth",
+                    "forgot-password"
+                  ]
+                },
+                "description": "**Branch**: `rate-limiting`\n**Controller**: `AuthController`\n**Method**: `forgotPassword`\n**Request Body**: `ForgotPasswordRequest`\n",
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"email\": \"user@example.com\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "POST - resetPassword (/api/v1/auth/reset-password)",
+              "request": {
+                "method": "POST",
+                "header": [],
+                "url": {
+                  "raw": "{{base_url}}/api/v1/auth/reset-password",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "auth",
+                    "reset-password"
+                  ],
+                  "query": [
+                    {
+                      "key": "token",
+                      "value": "sample_reset_token",
+                      "description": "Type: String, Required: true"
+                    }
+                  ]
+                },
+                "description": "**Branch**: `rate-limiting`\n**Controller**: `AuthController`\n**Method**: `resetPassword`\n**Query Parameters**: `token`\n**Request Body**: `ResetPasswordRequest`\n",
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"newPassword\": \"NewPassword123!\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "POST - sendOtp (/api/v1/auth/send-otp)",
+              "request": {
+                "method": "POST",
+                "header": [],
+                "url": {
+                  "raw": "{{base_url}}/api/v1/auth/send-otp",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "auth",
+                    "send-otp"
+                  ]
+                },
+                "description": "**Branch**: `rate-limiting`\n**Controller**: `AuthController`\n**Method**: `sendOtp`\n**Request Body**: `EmailOtpRequest`\n",
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"username\": \"burak_user\",\n  \"password\": \"Password123!\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "POST - verifyOtp (/api/v1/auth/verify-otp)",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{token}}",
+                    "description": "Requires authentication token"
+                  }
+                ],
+                "url": {
+                  "raw": "{{base_url}}/api/v1/auth/verify-otp",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "auth",
+                    "verify-otp"
+                  ]
+                },
+                "description": "**Branch**: `rate-limiting`\n**Controller**: `AuthController`\n**Method**: `verifyOtp`\n**Request Body**: `VerifyOtpRequest`\n",
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"username\": \"burak_user\",\n  \"otpCode\": \"123456\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "POST - setupTotp (/api/v1/auth/totp/setup)",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{token}}",
+                    "description": "Requires authentication token"
+                  }
+                ],
+                "url": {
+                  "raw": "{{base_url}}/api/v1/auth/totp/setup",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "auth",
+                    "totp",
+                    "setup"
+                  ]
+                },
+                "description": "**Branch**: `rate-limiting`\n**Controller**: `AuthController`\n**Method**: `setupTotp`\n"
+              },
+              "response": []
+            },
+            {
+              "name": "POST - enableTotp (/api/v1/auth/totp/enable)",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{token}}",
+                    "description": "Requires authentication token"
+                  }
+                ],
+                "url": {
+                  "raw": "{{base_url}}/api/v1/auth/totp/enable",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "auth",
+                    "totp",
+                    "enable"
+                  ],
+                  "query": [
+                    {
+                      "key": "code",
+                      "value": "123456",
+                      "description": "Type: String, Required: true"
+                    }
+                  ]
+                },
+                "description": "**Branch**: `rate-limiting`\n**Controller**: `AuthController`\n**Method**: `enableTotp`\n**Query Parameters**: `code`\n"
+              },
+              "response": []
+            },
+            {
+              "name": "POST - verifyTotpLogin (/api/v1/auth/totp/verify-login)",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{token}}",
+                    "description": "Requires authentication token"
+                  }
+                ],
+                "url": {
+                  "raw": "{{base_url}}/api/v1/auth/totp/verify-login",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "auth",
+                    "totp",
+                    "verify-login"
+                  ],
+                  "query": [
+                    {
+                      "key": "code",
+                      "value": "123456",
+                      "description": "Type: String, Required: true"
+                    }
+                  ]
+                },
+                "description": "**Branch**: `rate-limiting`\n**Controller**: `AuthController`\n**Method**: `verifyTotpLogin`\n**Query Parameters**: `code`\n"
+              },
+              "response": []
+            },
+            {
+              "name": "POST - setPassword (/api/v1/auth/set-password)",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{token}}",
+                    "description": "Requires authentication token"
+                  }
+                ],
+                "url": {
+                  "raw": "{{base_url}}/api/v1/auth/set-password",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "auth",
+                    "set-password"
+                  ],
+                  "query": [
+                    {
+                      "key": "newPassword",
+                      "value": "NewPassword123!",
+                      "description": "Type: String, Required: true"
+                    }
+                  ]
+                },
+                "description": "**Branch**: `rate-limiting`\n**Controller**: `AuthController`\n**Method**: `setPassword`\n**Query Parameters**: `newPassword`\n"
+              },
+              "response": []
+            }
+          ]
+        },
+        {
+          "name": "EmployeeController",
+          "item": [
+            {
+              "name": "GET - getAllEmployees (/api/v1/employees/all)",
+              "request": {
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{token}}",
+                    "description": "Requires authorization: hasRole('ADMIN')"
+                  }
+                ],
+                "url": {
+                  "raw": "{{base_url}}/api/v1/employees/all",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "employees",
+                    "all"
+                  ]
+                },
+                "description": "**Branch**: `rate-limiting`\n**Controller**: `EmployeeController`\n**Method**: `getAllEmployees`\n**Security (PreAuthorize)**: `hasRole('ADMIN')`\n"
+              },
+              "response": []
+            },
+            {
+              "name": "DELETE - deleteEmployee (/api/v1/employees/{id})",
+              "request": {
+                "method": "DELETE",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{token}}",
+                    "description": "Requires authorization: hasRole('ADMIN')"
+                  }
+                ],
+                "url": {
+                  "raw": "{{base_url}}/api/v1/employees/:id",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "employees",
+                    ":id"
+                  ],
+                  "variable": [
+                    {
+                      "key": "id",
+                      "value": "1",
+                      "description": "Path Parameter"
+                    }
+                  ]
+                },
+                "description": "**Branch**: `rate-limiting`\n**Controller**: `EmployeeController`\n**Method**: `deleteEmployee`\n**Security (PreAuthorize)**: `hasRole('ADMIN')`\n"
+              },
+              "response": []
+            },
+            {
+              "name": "GET - getEmployee (/api/v1/employees)",
+              "request": {
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{token}}",
+                    "description": "Requires authorization: hasAnyRole('ADMIN','USER')"
+                  }
+                ],
+                "url": {
+                  "raw": "{{base_url}}/api/v1/employees",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "employees"
+                  ]
+                },
+                "description": "**Branch**: `rate-limiting`\n**Controller**: `EmployeeController`\n**Method**: `getEmployee`\n**Security (PreAuthorize)**: `hasAnyRole('ADMIN','USER')`\n"
+              },
+              "response": []
+            },
+            {
+              "name": "PUT - updateEmployeeInformationAfterLogin (/api/v1/employees)",
+              "request": {
+                "method": "PUT",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{token}}",
+                    "description": "Requires authentication token"
+                  }
+                ],
+                "url": {
+                  "raw": "{{base_url}}/api/v1/employees",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "employees"
+                  ]
+                },
+                "description": "**Branch**: `rate-limiting`\n**Controller**: `EmployeeController`\n**Method**: `updateEmployeeInformationAfterLogin`\n**Request Body**: `EmployeeCreateRequest`\n",
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"username\": \"burak_user\",\n  \"firstName\": \"Burak\",\n  \"lastName\": \"Can\",\n  \"email\": \"user@example.com\",\n  \"tcNo\": \"12345678901\",\n  \"phoneNumber\": \"5551234567\",\n  \"birthDate\": \"1995-05-15\",\n  \"gender\": \"MALE\",\n  \"address\": \"Istanbul, Turkey\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              },
+              "response": []
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "variable": [
+    {
+      "key": "base_url",
+      "value": "http://localhost:8080",
+      "type": "string"
+    },
+    {
+      "key": "token",
+      "value": "your_jwt_access_token_here",
+      "type": "string"
+    },
+    {
+      "key": "xsrf_token",
+      "value": "sample_xsrf_token_here",
+      "type": "string"
+    }
+  ]
+}

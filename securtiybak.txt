@@ -1,0 +1,2 @@
+Yeni Branch (custom-permission-evaluator): Roles yerine Permissions 
+(Yetkiler) ve SpEL tabanlı @PreAuthorize("hasPermission(...)") ile nesne seviyesinde yetkilendirme yaz.

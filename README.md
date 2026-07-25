@@ -1,87 +1,219 @@
-# 🛡️ Employee Management & Spring Security JWT API (password-reset-token Branch)
-
-Bu branch, projemize güvenli bir **Şifre Sıfırlama (Password Reset)** akışı ekler. Kullanıcıların şifrelerini unutmaları durumunda, e-posta adreslerine gönderilen güvenli ve tek kullanımlık bir doğrulama token'ı aracılığıyla şifrelerini güncellemelerini sağlar.
-
-Bu branch, bir önceki `email-verification` branch'indeki e-posta doğrulama yeteneklerini barındırır ve üzerine şifre sıfırlama mantığını inşa eder.
+# 🔍 Custom Permission Evaluator Architecture (`custom-permission-evaluator` Branch)
 
 ---
 
-## 📌 Bu Branch'in Amacı ve Mantığı
-
-Şifre sıfırlama süreci aşağıdaki adımlarla güvenli bir şekilde yürütülür:
-1. **Şifre Sıfırlama Talebi**: Kullanıcı `/forgot-password` endpoint'ine kayıtlı e-posta adresini gönderir.
-2. **Geçici Token Oluşturma**: Sistem, veritabanında e-postayı arar. Eğer bulunursa, benzersiz bir UUID tabanlı `PasswordResetToken` üretilir ve veritabanına kaydedilir.
-3. **Sıfırlama Bağlantısının Gönderilmesi**: Kullanıcının e-posta adresine `http://localhost:9094/api/v1/auth/reset-password?token=<token>` biçiminde bir sıfırlama bağlantısı gönderilir.
-4. **Şifre Değişimi**: Kullanıcı e-postadaki linkten aldığı token ve yeni şifresini (`ResetPasswordRequest`) `/reset-password` endpoint'ine gönderir. Yeni şifre yine `@Password` kurallarına uymak zorundadır.
-5. **Güvenlik Doğrulaması**: Token veritabanından çekilir, süresi (expiryDate) ve geçerliliği kontrol edilir. Token geçerliyse kullanıcının şifresi BCrypt ile şifrelenerek güncellenir ve token veritabanından tamamen silinir (tek kullanımlık olması için).
+## 📑 İçindekiler
+1. [Proje Tanıtımı](#1-proje-tanıtımı)
+2. [Problem Tanımı](#2-problem-tanımı)
+3. [Çözüm Yaklaşımı](#3-çözüm-yaklaşımı)
+4. [Kullanılan Teknolojiler](#4-kullanılan-teknolojiler)
+5. [Proje Mimarisi](#5-proje-mimarisi)
+6. [Klasör Yapısı](#6-klasör-yapısı)
+7. [Kodun Genel Akışı](#7-kodun-genel-akışı)
+8. [Önemli Sınıflar](#8-önemli-sınıflar)
+9. [Önemli Teknik Kavramlar](#9-önemli-teknik-kavramlar)
+10. [Kod Örnekleri](#10-kod-örnekleri)
+11. [API Açıklamaları](#11-api-açıklamaları)
+12. [Kurulum](#12-kurulum)
+13. [Konfigürasyon](#13-konfigürasyon)
+14. [Güvenlik](#14-güvenlik)
+15. [Veri Akışı](#15-veri-akışı)
+16. [Hata Yönetimi](#16-hata-yönetimi)
+17. [Performans](#17-performans)
+18. [Geliştirici Notları](#18-geliştirici-notları)
+19. [Gelecekte Yapılabilecek Geliştirmeler](#19-gelecekte-yapılabilecek-geliştirmeler)
 
 ---
 
-## 🛠️ Bu Branch'te Yapılanlar & Teknik Mimari
+## 1. Proje Tanıtımı
 
-### 1. Yeni Eklenen Sınıflar
-*   **`PasswordResetToken` (Entity)**: Şifre sıfırlama taleplerini, ilgili kullanıcıyı ve token geçerlilik süresini (örn. 24 saat) veritabanında tutar.
-*   **`PasswordResetTokenService`**: Token'ı oluşturan, veritabanına kaydeden, süresinin geçip geçmediğini doğrulayan ve işlem sonrası token'ı silen sınıftır.
-*   **`ForgotPasswordRequest` (DTO)**: Kullanıcının şifresini sıfırlamak için girdiği e-postayı alan ve doğrulayan nesnedir.
-*   **`ResetPasswordRequest` (DTO)**: Kullanıcının yeni şifresini barındırır. Yeni şifre, sistemdeki güçlü şifre kurallarını denetleyen `@Password` anotasyonu ile korunur.
-*   **`PasswordResetTokenRepository`**: `password_reset_token` tablosu üzerinde CRUD operasyonları gerçekleştirir.
+Bu branch, Spring Security'nin standart `@PreAuthorize("hasRole('ADMIN')")` statik yetkilendirme sınırlarını aşarak, **Nesne Düzeyinde Dinamik İzin Değerlendirme (Object-Level Dynamic Access Control / Domain ACL)** mimarisini `PermissionEvaluator` arabirimi üzerinden uygulamaktadır.
 
-### 2. Şifre Sıfırlama Akış Diyagramı
-```mermaid
-sequenceDiagram
-    participant User as Kullanıcı
-    participant Controller as AuthController
-    participant Service as AuthService
-    participant TokenService as PasswordResetTokenService
-    participant Email as EmailService
-    participant DB as MySQL Veritabanı
+### Amaç ve Kapsam
+Örnek olarak eklenen İzin/İzin Talebi (`LeaveRequest`) modülü üzerinde, bir kullanıcının sadece kendi izin talebini okuma/güncelleme/silme yetkisine sahip olduğunu (Ownership), yöneticilerin (ADMIN) ise tüm talepleri onaylama/reddetme (APPROVE/REJECT) yetkisine sahip olduğunu anotasyon seviyesinde dinamik olarak doğrulamaktır.
 
-    User->>Controller: POST /forgot-password {email}
-    Controller->>Service: forgotPassword(request)
-    Service->>DB: E-posta ile Kullanıcıyı Sorgula
-    alt Kullanıcı Bulunursa
-        Service->>TokenService: createPasswordResetToken(employee)
-        TokenService->>DB: PasswordResetToken Kaydet (UUID, Expiry)
-        Service->>Email: sendPasswordReset(employee, token)
-        Email-->>User: E-posta Gönder (Sıfırlama Linkli)
-    end
-    Controller-->>User: "A password reset request was sent..."
+---
 
-    Note over User, DB: Kullanıcı e-postadaki linkten token'ı alır ve yeni şifresini yazar:
-    User->>Controller: POST /reset-password?token=<token> {newPassword}
-    Controller->>Service: resetPassword(token, request)
-    Service->>TokenService: getByToken(token) & verifyPasswordResetToken(token)
-    TokenService->>DB: Token Geçerliliğini ve Süresini Sorgula
-    alt Token Geçerliyse
-        Service->>Service: newPassword'ü BCrypt ile şifrele
-        Service->>DB: Employee Şifresini Güncelle
-        Service->>TokenService: deleteToken(token)
-        TokenService->>DB: Token'ı Veritabanından Sil
-        Controller-->>User: "Your password has been reset..."
-    else Token Geçersiz veya Süresi Dolmuşsa
-        Controller-->>User: Hata Yanıtı
-    end
+## 2. Problem Tanımı
+
+Geleneksel Rol Tabanlı Erişim Kontrolü (RBAC) sadece kullanıcının rolüne bakar:
+* Örneğin `@PreAuthorize("hasRole('USER')")` metodu, herhangi bir `USER` rolüne sahip kişinin sisteme girmiş başka bir kullanıcının ID'sini göndererek verisini okumasına veya silmesine engel olamaz (Insecure Direct Object Reference - IDOR zafiyeti).
+* İş mantığını Service katmanına `if (leaveRequest.getEmployee().getId() != currentUser.getId()) throw AccessDeniedException` şeklinde yazmak ise koda bağımlılık ve tekrar getirir.
+
+---
+
+## 3. Çözüm Yaklaşımı
+
+Spring Security'nin `PermissionEvaluator` kontratı kullanılarak **Deklaratif Nesne Düzeyinde Güvenlik** kurulmuştur:
+* **CustomPermissionEvaluator**: `hasPermission(Authentication auth, Serializable targetId, String targetType, Object permission)` metodunu implemente eder.
+* **Nesne Sahipliği (Ownership Check)**: İsteği atan kullanıcının `CustomUserPrincipal` ID'si ile hedef veritabanı kaydının (`LeaveRequest.employee.id`) eşleşip eşleşmediği kontrol edilir.
+* **SpEL Expression Integration**: Controller metodlarında `@PreAuthorize("hasPermission(#id, 'LeaveRequest', 'READ')")` şeklinde doğrudan ID bazlı dinamik sorgular yazılır.
+
+---
+
+## 4. Kullanılan Teknolojiler
+
+| Teknoloji | Kullanım Amacı |
+| :--- | :--- |
+| **Spring Security Method Security** | `@EnableMethodSecurity` ve SpEL (Spring Expression Language) üzerinden `hasPermission(...)` desteği. |
+| **PermissionEvaluator Interface** | Spring Security'nin domain objeleri için özelleştirilebilir yetki değerlendirme arabirimi. |
+| **Spring Data JPA & MySQL** | `LeaveRequest` entity'sinin veritabanı ilişkileri ile saklanması. |
+
+---
+
+## 5. Proje Mimarisi
+
+```
+[ HTTP GET /api/v1/leave-requests/10 ]
+       │
+       ▼
+[ Spring Security Aspect (@PreAuthorize) ]
+       │
+       ▼
+[ SpEL Evaluator ] ──► (Calls CustomPermissionEvaluator.hasPermission(10, 'LeaveRequest', 'READ'))
+       │
+       ▼
+[ LeaveRequestRepository.findById(10) ]
+       │
+       ▼
+[ Ownership & Role Logic ] ──► (Is User Owner? OR Is User ADMIN?)
+       │
+       ├──► TRUE  ──► Proceed to LeaveRequestController.getById(10)
+       └──► FALSE ──► Throw 403 Forbidden AccessDeniedException
 ```
 
 ---
 
-## 🔑 Veritabanı Modeli
+## 6. Klasör Yapısı
 
-### PasswordResetToken Tablosu
-| Alan Adı | Tip | Açıklama |
-| :--- | :--- | :--- |
-| `id` | Long (PK) | Otomatik artan benzersiz ID |
-| `token` | String | Benzersiz UUID şifre sıfırlama token'ı |
-| `employee_id` | Long (FK) | Token'ın ait olduğu çalışan (Employee) |
-| `expiryDate` | Instant | Token'ın son geçerlilik tarihi |
+```
+src/main/java/com/burakcanaksoy/springsecurity/
+├── security/
+│   └── CustomPermissionEvaluator.java   # PermissionEvaluator implementasyonu (READ, WRITE, DELETE, APPROVE)
+├── controller/
+│   └── LeaveRequestController.java     # @PreAuthorize("hasPermission(...)") anotasyonlu REST uç noktaları
+├── entity/
+│   ├── LeaveRequest.java               # İzin Talebi Entity'si
+│   └── enums/
+│       ├── Permission.java             # READ, WRITE, DELETE, APPROVE Enum'ları
+│       └── LeaveRequestStatus.java     # PENDING, APPROVED, REJECTED Enum'ları
+└── service/
+    └── LeaveRequestService.java        # İzin talebi iş mantığı
+```
 
 ---
 
-## 🗺️ API Uç Noktaları (Endpoints)
+## 7. Kodun Genel Akışı
 
-*   **POST** `/api/v1/auth/forgot-password`
-    *   **Açıklama:** Şifresini unutan kullanıcının e-posta adresini alır. Kullanıcı mevcutsa e-posta doğrulama token'ı gönderilir.
-    *   **İstek Gövdesi:** `ForgotPasswordRequest` `{ "email": "ornek@domain.com" }`
-*   **POST** `/api/v1/auth/reset-password?token={token}`
-    *   **Açıklama:** Query parametresi olarak gelen token ile istek gövdesindeki yeni şifreyi doğrular ve şifre güncellemesini yapar.
-    *   **İstek Gövdesi:** `ResetPasswordRequest` `{ "newPassword": "YeniSifre123!" }`
+1. İstemci `GET /api/v1/leave-requests/5` isteği gönderir.
+2. Metot tetiklenmeden önce `@PreAuthorize("hasPermission(#id, 'LeaveRequest', 'READ')")` AOP interceptor'ı devreye girer.
+3. Spring Security `CustomPermissionEvaluator.hasPermission(...)` metodunu çağırır.
+4. `CustomPermissionEvaluator`, DB'den ID'si 5 olan `LeaveRequest` kaydını bulur.
+5. İstekteki `CustomUserPrincipal.getId()` ile kaydın sahibi karşılaştırılır veya yetki `ADMIN` mi bakılır.
+6. Geçerli ise metot çalışır; değilse `403 Forbidden` döner.
+
+---
+
+## 8. Önemli Sınıflar
+
+* **`CustomPermissionEvaluator`**: Nesne türüne (`LeaveRequest`) ve istenen izne (`READ`, `APPROVE` vs.) göre yetkilendirme kararını veren sınıf.
+* **`LeaveRequestController`**: Fine-grained yetkilendirme anotasyonlarına sahip denetleyici.
+
+---
+
+## 9. Önemli Teknik Kavramlar
+
+* **IDOR (Insecure Direct Object Reference)**: Bir kullanıcının yetkisi olmayan başka bir nesneye ID değiştirerek erişebilmesi zafiyeti.
+* **SpEL (Spring Expression Language)**: Anotasyonlar içinde dinamik Java kodları çalıştırmaya yarayan Spring ifade dili (`#id`, `hasPermission(...)`).
+* **ACL (Access Control List)**: Nesne seviyesinde erişim haklarını tanımlayan güvenlik modeli.
+
+---
+
+## 10. Kod Örnekleri
+
+### Custom Permission Evaluator Uygulaması (`CustomPermissionEvaluator.java`)
+```java
+@Override
+public boolean hasPermission(Authentication authentication, Serializable targetId, String targetType, Object permission) {
+    if (authentication == null || targetId == null) return false;
+
+    if ("LeaveRequest".equals(targetType)) {
+        Optional<LeaveRequest> leaveRequest = leaveRequestRepository.findById((Long) targetId);
+        if (leaveRequest.isEmpty()) return false;
+        
+        CustomUserPrincipal principal = (CustomUserPrincipal) authentication.getPrincipal();
+        boolean isOwner = leaveRequest.get().getEmployee().getId().equals(principal.getId());
+        boolean isAdmin = principal.getAuthorities().stream().anyMatch(a -> a.getAuthority().equals("ROLE_ADMIN"));
+
+        Permission perm = Permission.valueOf(permission.toString().toUpperCase());
+        return switch (perm) {
+            case READ -> isOwner || isAdmin;
+            case WRITE -> isOwner;
+            case DELETE -> isAdmin || isOwner;
+            case APPROVE -> isAdmin;
+        };
+    }
+    return false;
+}
+```
+
+---
+
+## 11. API Açıklamaları
+
+| Method | Endpoint | Anotasyon / Erişim | Açıklama |
+| :--- | :--- | :--- | :--- |
+| **GET** | `/leave-requests/{id}` | `hasPermission(#id, 'LeaveRequest', 'READ')` | Sadece talebin sahibi veya Admin okuyabilir. |
+| **POST** | `/leave-requests/{id}/approve` | `hasPermission(#id, 'LeaveRequest', 'APPROVE')` | Sadece Admin onaylayabilir. |
+| **DELETE** | `/leave-requests/{id}` | `hasPermission(#id, 'LeaveRequest', 'DELETE')` | Talebin sahibi veya Admin silebilir. |
+
+---
+
+## 12. Kurulum
+
+1. `SecurityConfig` sınıfına `@EnableMethodSecurity` eklendiğinden emin olun.
+2. Uygulamayı çalıştırıp iki farklı kullanıcı ile oluşturulan izin taleplerine çapraz erişim denemeleri yapın.
+
+---
+
+## 13. Konfigürasyon
+
+Metot seviyesi güvenlik `SecurityConfig` üzerindeki `@EnableMethodSecurity` ile aktifleştirilmiştir.
+
+---
+
+## 14. Güvenlik
+
+* **IDOR Saldırılarına Karşı Tam Koruma**: Kullanıcılar sadece kendi ürettikleri veriler üzerinde yetkiye sahiptir.
+
+---
+
+## 15. Veri Akışı
+
+```
+Request with ID -> SpEL Interceptor -> CustomPermissionEvaluator -> DB Lookup -> Ownership Matching -> Execution / Block
+```
+
+---
+
+## 16. Hata Yönetimi
+
+* İzin verilmeyen isteklerde `JwtAccessDeniedHandler` otomatik tetiklenerek `403 Forbidden` yanıtı verir.
+
+---
+
+## 17. Performans
+
+* Her metot çağrısında veritabanından nesne okumak I/O yükü getirebilir. İhtiyaç halinde `LeaveRequest` sahiplik bilgisi önbelleğe (Cache) alınabilir.
+
+---
+
+## 18. Geliştirici Notları
+
+* Yeni bir domain objesi (örneğin `Document`, `Invoice`) eklendiğinde `CustomPermissionEvaluator` içerisine yeni bir `switch/case` kolu eklenmelidir.
+
+---
+
+## 19. Gelecekte Yapılabilecek Geliştirmeler
+
+- [ ] Spring Security ACL (Domain Object Security) veri tabanlı izin tabloları entegrasyonu.

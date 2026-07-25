@@ -68,7 +68,7 @@ public class SecurityConfig {
                 .sessionManagement(session -> session
                         .sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
-                .addFilterAfter(csrfCookieFilter, BasicAuthenticationFilter.class);
+                .addFilterAfter(csrfCookieFilter, JwtAuthenticationFilter.class);
         return http.build();
     }
 

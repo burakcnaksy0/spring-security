@@ -146,10 +146,13 @@ public class AuthService {
 
     public String logout(HttpServletResponse response) {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        CustomUserPrincipal principal = (CustomUserPrincipal) authentication.getPrincipal();
-        refreshTokenService.deleteEmployeeId(principal.getId());
+        if (authentication != null && authentication.getPrincipal() instanceof CustomUserPrincipal principal) {
+            refreshTokenService.deleteEmployeeId(principal.getId());
+            cookieUtil.clearAuthCookies(response);
+            return "Logout successfully with username : " + principal.getUsername();
+        }
         cookieUtil.clearAuthCookies(response);
-        return "Logout successfully with username : " + principal.getUsername();
+        return "Logout successfully";
     }
 
     public String forgotPassword(ForgotPasswordRequest forgotPasswordRequest) {

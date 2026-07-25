@@ -3909,6 +3909,215 @@
               "response": []
             }
           ]
+        },
+        {
+          "name": "RolePermissionController",
+          "item": [
+            {
+              "name": "POST - createPermission (/api/v1/admin/permissions)",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "X-XSRF-TOKEN",
+                    "value": "{{xsrf_token}}",
+                    "description": "CSRF Protection Token"
+                  }
+                ],
+                "url": {
+                  "raw": "{{base_url}}/api/v1/admin/permissions",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "admin",
+                    "permissions"
+                  ]
+                },
+                "description": "**Branch**: `custom-permission-evaluator`\n**Controller**: `RolePermissionController`\n**Method**: `createPermission`\n**Security (PreAuthorize)**: `hasAuthority(\"ROLE_ADMIN\")`\n**Request Body**: `PermissionRequest`\n",
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"name\": \"SALARY_READ\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "GET - getAllPermissions (/api/v1/admin/permissions)",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{base_url}}/api/v1/admin/permissions",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "admin",
+                    "permissions"
+                  ]
+                },
+                "description": "**Branch**: `custom-permission-evaluator`\n**Controller**: `RolePermissionController`\n**Method**: `getAllPermissions`\n**Security (PreAuthorize)**: `hasAuthority(\"ROLE_ADMIN\")`\n"
+              },
+              "response": []
+            },
+            {
+              "name": "POST - createRole (/api/v1/admin/roles)",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "X-XSRF-TOKEN",
+                    "value": "{{xsrf_token}}",
+                    "description": "CSRF Protection Token"
+                  }
+                ],
+                "url": {
+                  "raw": "{{base_url}}/api/v1/admin/roles",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "admin",
+                    "roles"
+                  ]
+                },
+                "description": "**Branch**: `custom-permission-evaluator`\n**Controller**: `RolePermissionController`\n**Method**: `createRole`\n**Security (PreAuthorize)**: `hasAuthority(\"ROLE_ADMIN\")`\n**Request Body**: `RoleRequest`\n",
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"name\": \"ROLE_FINANCE\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "GET - getAllRoles (/api/v1/admin/roles)",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{base_url}}/api/v1/admin/roles",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "admin",
+                    "roles"
+                  ]
+                },
+                "description": "**Branch**: `custom-permission-evaluator`\n**Controller**: `RolePermissionController`\n**Method**: `getAllRoles`\n**Security (PreAuthorize)**: `hasAuthority(\"ROLE_ADMIN\")`\n"
+              },
+              "response": []
+            },
+            {
+              "name": "POST - assignPermissionsToRole (/api/v1/admin/roles/{roleId}/permissions)",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "X-XSRF-TOKEN",
+                    "value": "{{xsrf_token}}",
+                    "description": "CSRF Protection Token"
+                  }
+                ],
+                "url": {
+                  "raw": "{{base_url}}/api/v1/admin/roles/:roleId/permissions",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "admin",
+                    "roles",
+                    ":roleId",
+                    "permissions"
+                  ],
+                  "variable": [
+                    {
+                      "key": "roleId",
+                      "value": "1",
+                      "description": "Role ID"
+                    }
+                  ]
+                },
+                "description": "**Branch**: `custom-permission-evaluator`\n**Controller**: `RolePermissionController`\n**Method**: `assignPermissionsToRole`\n**Security (PreAuthorize)**: `hasAuthority(\"ROLE_ADMIN\")`\n**Request Body**: `AssignPermissionsRequest`\n",
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"permissionIds\": [1, 2]\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "POST - assignRolesToEmployee (/api/v1/admin/employees/{employeeId}/roles)",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "X-XSRF-TOKEN",
+                    "value": "{{xsrf_token}}",
+                    "description": "CSRF Protection Token"
+                  }
+                ],
+                "url": {
+                  "raw": "{{base_url}}/api/v1/admin/employees/:employeeId/roles",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "admin",
+                    "employees",
+                    ":employeeId",
+                    "roles"
+                  ],
+                  "variable": [
+                    {
+                      "key": "employeeId",
+                      "value": "1",
+                      "description": "Employee ID"
+                    }
+                  ]
+                },
+                "description": "**Branch**: `custom-permission-evaluator`\n**Controller**: `RolePermissionController`\n**Method**: `assignRolesToEmployee`\n**Security (PreAuthorize)**: `hasAuthority(\"ROLE_ADMIN\")`\n**Request Body**: `AssignRolesRequest`\n",
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"roleIds\": [1, 2]\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              },
+              "response": []
+            }
+          ]
         }
       ]
     },

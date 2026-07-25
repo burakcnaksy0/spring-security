@@ -33,6 +33,7 @@ import org.springframework.stereotype.Service;
 
 import java.time.Instant;
 import java.util.Optional;
+import java.util.Set;
 
 @Service
 @RequiredArgsConstructor
@@ -57,7 +58,7 @@ public class AuthService {
         Role defaultRole = roleRepository.findByName("ROLE_USER")
                 .orElseGet(() -> roleRepository.save(Role.builder().name("ROLE_USER").build()));
 
-        Employee employee = mapper.toEmployee(registerRequest, java.util.Set.of(defaultRole));
+        Employee employee = mapper.toEmployee(registerRequest, Set.of(defaultRole));
         Employee saved = repository.save(employee);
 
         VerificationToken verificationToken = verificationTokenService.createVerificationToken(saved);

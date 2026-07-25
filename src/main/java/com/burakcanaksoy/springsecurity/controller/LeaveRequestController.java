@@ -18,6 +18,7 @@ import java.util.List;
 public class LeaveRequestController {
     private final LeaveRequestService leaveRequestService;
 
+    @PreAuthorize("hasAuthority('LEAVE_CREATE')")
     @PostMapping
     public ResponseEntity<LeaveRequestResponse> create(@Valid @RequestBody LeaveRequestCreateRequest request) {
         return ResponseEntity.status(HttpStatus.CREATED).body(leaveRequestService.create(request));
@@ -46,13 +47,15 @@ public class LeaveRequestController {
         return ResponseEntity.ok(leaveRequestService.approve(id));
     }
 
-    @PreAuthorize("hasPermission(#id, 'LeaveRequest', 'APPROVE')")
+    //@PreAuthorize("hasPermission(#id, 'LeaveRequest', 'APPROVE')")
+    @PreAuthorize("hasAuthority('LEAVE_REJECT')")
     @PostMapping("/{id}/reject")
     public ResponseEntity<LeaveRequestResponse> reject(@PathVariable Long id) {
         return ResponseEntity.ok(leaveRequestService.reject(id));
     }
 
-    @PreAuthorize("hasPermission(#id, 'LeaveRequest', 'DELETE')")
+    //@PreAuthorize("hasPermission(#id, 'LeaveRequest', 'DELETE')")
+    @PreAuthorize("hasAuthority('LEAVE_DELETE')")
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> delete(@PathVariable Long id) {
         leaveRequestService.delete(id);
